@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha — Clareza emocional imediata</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            color: #fafafa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .lang-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #404040;
+            color: #737373;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lang-btn:hover, .lang-btn.active {
+            border-color: #fafafa;
+            color: #fafafa;
+        }
+
+        .brand {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: #737373;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #737373;
+            margin-bottom: 32px;
+        }
+
+        h1 {
+            font-size: clamp(48px, 12vw, 72px);
+            font-weight: 300;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+            line-height: 1;
+        }
+
+        .tagline {
+            font-size: 18px;
+            font-weight: 300;
+            color: #a3a3a3;
+            margin-bottom: 48px;
+            line-height: 1.5;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #fafafa;
+            color: #0a0a0a;
+            padding: 18px 48px;
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+
+        .cta-button:hover {
+            background: #e5e5e5;
+            transform: translateY(-1px);
+        }
+
+        .price {
+            font-size: 14px;
+            color: #525252;
+            margin-top: 12px;
+        }
+
+        .price span {
+            color: #a3a3a3;
+        }
+
+        /* Test access section - mais visível */
+        .test-access {
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 1px solid #262626;
+        }
+
+        .test-access-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #a3a3a3;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 12px 24px;
+            border: 1px solid #404040;
+            border-radius: 6px;
+            background: transparent;
+            transition: all 0.2s;
+        }
+
+        .test-access-link:hover {
+            border-color: #737373;
+            color: #fafafa;
+        }
+
+        .test-access-link .icon {
+            font-size: 16px;
+        }
+
+        .disclaimer {
+            margin-top: 24px;
+            font-size: 12px;
+            color: #525252;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.5;
+        }
+
+        footer {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 12px;
+            color: #525252;
+        }
+
+        footer a {
+            color: #737373;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: #fafafa;
+        }
+
+        /* Modal de código de acesso */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #171717;
+            border: 1px solid #262626;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal h2 {
+            font-size: 24px;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+
+        .modal p {
+            font-size: 14px;
+            color: #737373;
+            margin-bottom: 32px;
+        }
+
+        .code-input {
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 16px 20px;
+            font-size: 18px;
+            font-family: inherit;
+            color: #fafafa;
+            text-align: center;
+            letter-spacing: 0.1em;
+            text-transform: lowercase;
+            margin-bottom: 16px;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: #737373;
+        }
+
+        .code-input::placeholder {
+            color: #525252;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .modal-btn {
+            width: 100%;
+            background: #fafafa;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn:hover {
+            background: #e5e5e5;
+        }
+
+        .modal-btn:disabled {
+            background: #404040;
+            color: #737373;
+            cursor: not-allowed;
+        }
+
+        .modal-error {
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .modal-error.show {
+            display: block;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: #525252;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .modal-close:hover {
+            color: #fafafa;
+        }
+
+        .modal-wrapper {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLang('pt')">PT</button>
+        <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+
+    <div class="container">
+        <p class="brand">LOLALAB</p>
+
+        <h1>Alpha</h1>
+
+        <p class="subtitle" data-pt="Diagnóstico emocional" data-en="Emotional diagnosis">Diagnóstico emocional</p>
+
+        <p class="tagline" data-pt="Clareza emocional antes de se perder.&lt;br&gt;Sem romantizar. Sem ilusão." data-en="Emotional clarity before you lose yourself.&lt;br&gt;No romanticizing. No illusion.">
+            Clareza emocional antes de se perder.<br>
+            Sem romantizar. Sem ilusão.
+        </p>
+
+        <a href="https://buy.stripe.com/3cIaEZgJja5y2REaEf1ck00" class="cta-button" data-pt="Analisar minha conversa" data-en="Analyze my conversation">
+            Analisar minha conversa
+        </a>
+
+        <p class="price"><span>€19</span> — <span data-pt="acesso imediato" data-en="instant access">acesso imediato</span></p>
+
+        <div class="test-access">
+            <button class="test-access-link" onclick="openCodeModal()" data-pt="🔑 Tem código de acesso?" data-en="🔑 Have an access code?">
+                🔑 Tem código de acesso?
+            </button>
+        </div>
+
+        <p class="disclaimer" data-pt="⚠️ Para fins de entretenimento. Não substitui acompanhamento profissional." data-en="⚠️ For entertainment purposes. Does not replace professional guidance.">
+            ⚠️ Para fins de entretenimento. Não substitui acompanhamento profissional.
+        </p>
+
+        <footer>
+            Made by <a href="https://lolalab.studio" target="_blank">LolaLab</a>
+        </footer>
+    </div>
+
+    <!-- Modal de código de acesso -->
+    <div class="modal-overlay" id="codeModal">
+        <div class="modal-wrapper">
+            <button class="modal-close" onclick="closeCodeModal()">×</button>
+            <div class="modal">
+                <h2 data-pt="Código de acesso" data-en="Access code">Código de acesso</h2>
+                <p data-pt="Insira o código para acessar o modo teste" data-en="Enter the code to access test mode">Insira o código para acessar o modo teste</p>
+
+                <input
+                    type="text"
+                    class="code-input"
+                    id="accessCode"
+                    placeholder="Digite o código"
+                    data-placeholder-pt="Digite o código"
+                    data-placeholder-en="Enter the code"
+                    autocomplete="off"
+                    onkeyup="handleCodeInput(event)"
+                >
+
+                <button class="modal-btn" onclick="validateCode()" data-pt="Acessar" data-en="Access">Acessar</button>
+
+                <p class="modal-error" id="codeError" data-pt="Código inválido. Tente novamente." data-en="Invalid code. Try again.">Código inválido. Tente novamente.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLang = 'pt';
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-pt]').forEach(el => {
+                const text = el.getAttribute('data-' + lang);
+                el.innerHTML = text.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+            });
+
+            // Update placeholder
+            const codeInput = document.getElementById('accessCode');
+            if (codeInput) {
+                codeInput.placeholder = codeInput.getAttribute('data-placeholder-' + lang);
+            }
+
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === lang.toUpperCase()) {
+                    btn.classList.add('active');
+                }
+            });
+            localStorage.setItem('alpha-lang', lang);
+        }
+
+        function openCodeModal() {
+            document.getElementById('codeModal').classList.add('active');
+            document.getElementById('accessCode').focus();
+            document.getElementById('codeError').classList.remove('show');
+        }
+
+        function closeCodeModal() {
+            document.getElementById('codeModal').classList.remove('active');
+            document.getElementById('accessCode').value = '';
+            document.getElementById('codeError').classList.remove('show');
+        }
+
+        function handleCodeInput(event) {
+            document.getElementById('codeError').classList.remove('show');
+            if (event.key === 'Enter') {
+                validateCode();
+            }
+        }
+
+        function validateCode() {
+            const code = document.getElementById('accessCode').value.toLowerCase().trim();
+            const validCodes = ['lolalab', 'lola', 'alpha'];
+
+            if (validCodes.includes(code)) {
+                window.location.href = 'alpha-test.html';
+            } else {
+                document.getElementById('codeError').classList.add('show');
+                document.getElementById('accessCode').select();
+            }
+        }
+
+        // Close modal on overlay click
+        document.getElementById('codeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCodeModal();
+            }
+        });
+
+        // Close modal on ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCodeModal();
+            }
+        });
+
+        // Check saved language or browser language
+        const savedLang = localStorage.getItem('alpha-lang') ||
+            (navigator.language.startsWith('pt') ? 'pt' : 'en');
+        if (savedLang !== 'pt') setLang(savedLang);
+    </script>
+</body>
+</html>

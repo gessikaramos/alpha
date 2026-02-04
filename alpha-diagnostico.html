@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha — Diagnóstico</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0a0a0a;
+            color: #fafafa;
+            min-height: 100vh;
+            padding: 24px;
+            line-height: 1.6;
+        }
+        .container { max-width: 640px; margin: 0 auto; }
+        .lang-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+        .lang-btn {
+            background: transparent;
+            border: 1px solid #404040;
+            color: #737373;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .lang-btn:hover, .lang-btn.active {
+            border-color: #fafafa;
+            color: #fafafa;
+        }
+        header { text-align: center; padding: 32px 0 48px; }
+        .brand { font-size: 14px; font-weight: 600; color: #737373; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+        .logo { font-size: 36px; font-weight: 300; letter-spacing: -0.02em; }
+        .subtitle { font-size: 14px; color: #525252; margin-top: 4px; }
+
+        /* Test mode banner */
+        .test-banner {
+            background: linear-gradient(90deg, #713f12, #854d0e);
+            color: #fde047;
+            text-align: center;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+        }
+        .test-banner + .container { padding-top: 48px; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 48px 0 24px;
+            color: #525252;
+            font-size: 12px;
+        }
+        footer a { color: #737373; text-decoration: none; }
+        footer a:hover { color: #fafafa; }
+
+        .input-section { margin-bottom: 24px; }
+        .input-section > label {
+            display: block;
+            font-size: 14px;
+            color: #a3a3a3;
+            margin-bottom: 12px;
+        }
+
+        /* Input Mode Toggle */
+        .input-mode-toggle {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .mode-btn {
+            flex: 1;
+            background: #171717;
+            border: 1px solid #262626;
+            color: #a3a3a3;
+            padding: 16px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .mode-btn:hover { border-color: #404040; }
+        .mode-btn.active {
+            border-color: #fafafa;
+            color: #fafafa;
+            background: #1a1a1a;
+        }
+        .mode-btn .icon { font-size: 20px; margin-bottom: 8px; display: block; }
+        .mode-btn .label { font-weight: 500; display: block; }
+        .mode-btn .hint { font-size: 11px; color: #525252; margin-top: 4px; display: block; }
+        .mode-btn.active .hint { color: #737373; }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #262626;
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .upload-area.active { display: block; }
+        .upload-area:hover { border-color: #404040; }
+        .upload-area.dragover { border-color: #fafafa; background: #1a1a1a; }
+        .upload-input { display: none; }
+        .upload-icon { font-size: 32px; margin-bottom: 12px; }
+        .upload-text { color: #a3a3a3; font-size: 14px; }
+        .upload-hint { color: #525252; font-size: 12px; margin-top: 8px; }
+        .upload-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+        .upload-preview .img-wrapper {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+        .upload-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #262626;
+        }
+        .upload-preview .remove-img {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 18px;
+            height: 18px;
+            background: #ef4444;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .microcopy {
+            font-size: 12px;
+            color: #525252;
+            margin-top: 8px;
+        }
+
+        /* Context Fields */
+        .context-section {
+            background: #171717;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .context-section h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #737373;
+            margin-bottom: 16px;
+        }
+        .context-field { margin-bottom: 16px; }
+        .context-field:last-child { margin-bottom: 0; }
+        .context-field label {
+            display: block;
+            font-size: 13px;
+            color: #a3a3a3;
+            margin-bottom: 8px;
+        }
+        .context-field input[type="text"] {
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid #262626;
+            border-radius: 6px;
+            padding: 12px;
+            color: #fafafa;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        .context-field input[type="text"]:focus { outline: none; border-color: #525252; }
+        .context-field input[type="text"]::placeholder { color: #525252; }
+        .context-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .context-option {
+            background: #0a0a0a;
+            border: 1px solid #262626;
+            color: #a3a3a3;
+            padding: 8px 14px;
+            font-size: 13px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .context-option:hover { border-color: #404040; }
+        .context-option.selected {
+            border-color: #fafafa;
+            color: #fafafa;
+            background: #1a1a1a;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            background: #171717;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 16px;
+            color: #fafafa;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        textarea:focus { outline: none; border-color: #525252; }
+        textarea::placeholder { color: #525252; }
+        .text-input-wrapper { display: block; }
+        .text-input-wrapper.hidden { display: none; }
+
+        .analyze-btn {
+            width: 100%;
+            background: #fafafa;
+            color: #0a0a0a;
+            border: none;
+            padding: 16px 32px;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 16px;
+        }
+        .analyze-btn:hover { background: #e5e5e5; }
+        .analyze-btn:disabled { background: #404040; color: #737373; cursor: not-allowed; }
+
+        .error-msg {
+            background: #1c1917;
+            border: 1px solid #7c2d12;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #fbbf24;
+            display: none;
+        }
+        .error-msg.active { display: block; }
+
+        .results { display: none; }
+        .results.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Output Structure */
+        .result-block {
+            background: #171717;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .result-block h3 {
+            font-size: 13px;
+            font-weight: 500;
+            color: #fafafa;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .result-block h3 .emoji { font-size: 16px; }
+        .result-block p { font-size: 15px; color: #e5e5e5; line-height: 1.6; }
+
+        .diagnostico-central {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid #1e3a5f;
+        }
+        .diagnostico-central p {
+            font-size: 18px;
+            font-weight: 500;
+            color: #fafafa;
+        }
+
+        .risco-real {
+            border-color: #7c2d12;
+            background: #1c1917;
+        }
+        .risco-real p { color: #fbbf24; }
+
+        .proximo-movimento {
+            border-color: #22c55e33;
+            background: #0a1f0a;
+        }
+        .proximo-movimento p { color: #86efac; }
+
+        /* Abuse/Risk Screening Block */
+        .triagem-risco {
+            border-color: #dc2626;
+            background: linear-gradient(135deg, #1f1215 0%, #1a0a0a 100%);
+            display: none;
+        }
+        .triagem-risco.active { display: block; }
+        .triagem-risco h3 { color: #fca5a5; }
+        .triagem-risco .nivel {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .triagem-risco .nivel-baixo { background: #365314; color: #bef264; }
+        .triagem-risco .nivel-medio { background: #713f12; color: #fde047; }
+        .triagem-risco .nivel-alto { background: #7f1d1d; color: #fca5a5; }
+        .triagem-risco .sinais {
+            font-size: 14px;
+            color: #fca5a5;
+            margin-bottom: 16px;
+        }
+        .triagem-risco .orientacao {
+            font-size: 14px;
+            color: #e5e5e5;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+        .triagem-risco .disclaimer {
+            font-size: 12px;
+            color: #737373;
+            font-style: italic;
+        }
+
+        /* Response Cards - Conditional */
+        .respostas-section h3 { margin-bottom: 16px; }
+        .resposta-card {
+            background: #0a0a0a;
+            border: 1px solid #262626;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .resposta-tipo {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #737373;
+            margin-bottom: 8px;
+        }
+        .resposta-texto {
+            font-size: 14px;
+            color: #e5e5e5;
+            margin-bottom: 12px;
+        }
+        .copy-btn {
+            background: transparent;
+            border: 1px solid #404040;
+            color: #a3a3a3;
+            padding: 8px 16px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { border-color: #fafafa; color: #fafafa; }
+        .copy-btn.copied { border-color: #22c55e; color: #22c55e; }
+
+        .protecao {
+            text-align: center;
+            padding: 24px;
+            font-size: 13px;
+            color: #525252;
+            border-top: 1px solid #262626;
+            margin-top: 32px;
+        }
+        .frase-ancora {
+            font-weight: 500;
+            font-size: 15px;
+            color: #a3a3a3;
+            font-style: italic;
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        .reset-btn {
+            display: block;
+            width: 100%;
+            background: transparent;
+            border: 1px solid #404040;
+            color: #737373;
+            padding: 14px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 24px;
+        }
+        .reset-btn:hover { border-color: #fafafa; color: #fafafa; }
+
+        /* Feedback Form */
+        .feedback-section {
+            background: #171717;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 32px;
+        }
+        .feedback-section h4 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: #a3a3a3;
+        }
+        .feedback-row {
+            margin-bottom: 20px;
+        }
+        .feedback-row label {
+            display: block;
+            font-size: 13px;
+            color: #a3a3a3;
+            margin-bottom: 8px;
+        }
+        .feedback-thumbs {
+            display: flex;
+            gap: 12px;
+        }
+        .thumb-btn {
+            flex: 1;
+            padding: 12px;
+            background: #0a0a0a;
+            border: 1px solid #262626;
+            border-radius: 6px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .thumb-btn:hover { border-color: #404040; }
+        .thumb-btn.selected { border-color: #fafafa; background: #1a1a1a; }
+        .feedback-range {
+            width: 100%;
+            margin-top: 8px;
+        }
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #525252;
+            margin-top: 4px;
+        }
+        .feedback-textarea {
+            width: 100%;
+            min-height: 80px;
+            background: #0a0a0a;
+            border: 1px solid #262626;
+            border-radius: 6px;
+            padding: 12px;
+            color: #fafafa;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+        }
+        .feedback-textarea:focus { outline: none; border-color: #525252; }
+        .feedback-input {
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid #262626;
+            border-radius: 6px;
+            padding: 12px;
+            color: #fafafa;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        .feedback-input:focus { outline: none; border-color: #525252; }
+        .feedback-submit {
+            width: 100%;
+            background: #262626;
+            color: #fafafa;
+            border: none;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .feedback-submit:hover { background: #404040; }
+        .feedback-success {
+            text-align: center;
+            color: #22c55e;
+            padding: 32px 20px;
+            display: none;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .feedback-success.active {
+            display: block;
+            animation: fadeInSuccess 0.3s ease;
+        }
+        @keyframes fadeInSuccess {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        footer { text-align: center; padding: 48px 0 24px; }
+        .footer-disclaimer {
+            text-align: center;
+            font-size: 11px;
+            color: #404040;
+            max-width: 400px;
+            margin: 32px auto 0;
+            line-height: 1.4;
+        }
+        .footer-logo { height: 16px; opacity: 0.4; }
+    </style>
+</head>
+<body>
+    <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLang('pt')">PT</button>
+        <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+
+    <div class="container">
+        <header>
+            <p class="brand">LolaLab</p>
+            <h1 class="logo">Alpha</h1>
+            <p class="subtitle" id="subtitle">Diagnóstico emocional</p>
+        </header>
+
+        <main>
+            <div id="inputArea">
+                <!-- Input Mode Toggle -->
+                <div class="input-mode-toggle">
+                    <button class="mode-btn active" id="textModeBtn" onclick="setInputMode('text')">
+                        <span class="icon">📝</span>
+                        <span class="label" data-i18n="textModeLabel">Colar texto</span>
+                        <span class="hint" data-i18n="textModeHint">rápido</span>
+                    </button>
+                    <button class="mode-btn" id="imageModeBtn" onclick="setInputMode('image')">
+                        <span class="icon">📷</span>
+                        <span class="label" data-i18n="imageModeLabel">Enviar prints</span>
+                        <span class="hint" data-i18n="imageModeHint">mais fácil</span>
+                    </button>
+                </div>
+
+                <!-- Text Input -->
+                <div class="input-section text-input-wrapper" id="textInputWrapper">
+                    <label id="inputLabel">Cole a conversa abaixo</label>
+                    <textarea id="conversation" placeholder=""></textarea>
+                    <p class="microcopy" data-i18n="textMicrocopy">Cole como vier. A gente organiza.</p>
+                </div>
+
+                <!-- Image Upload -->
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" class="upload-input" id="imageInput" accept="image/*" multiple>
+                    <div class="upload-icon">📷</div>
+                    <p class="upload-text" data-i18n="uploadText">Clique ou arraste até 10 prints</p>
+                    <p class="upload-hint" data-i18n="uploadHint">Imagens não são armazenadas após análise.</p>
+                    <div class="upload-preview" id="uploadPreview"></div>
+                </div>
+
+                <!-- Context Section -->
+                <div class="context-section">
+                    <h4 data-i18n="contextTitle">Contexto rápido</h4>
+
+                    <div class="context-field">
+                        <label data-i18n="doubtLabel">Sua dúvida em 1 frase *</label>
+                        <input type="text" id="mainDoubt" placeholder="" data-i18n-placeholder="doubtPlaceholder">
+                    </div>
+
+                    <div class="context-field">
+                        <label data-i18n="relationLabel">Tipo de vínculo</label>
+                        <div class="context-options" data-context="relationType">
+                            <span class="context-option" data-value="amoroso" data-i18n="relationAmoroso">Amoroso</span>
+                            <span class="context-option" data-value="amizade" data-i18n="relationAmizade">Amizade</span>
+                            <span class="context-option" data-value="familia" data-i18n="relationFamilia">Família</span>
+                            <span class="context-option" data-value="trabalho" data-i18n="relationTrabalho">Trabalho</span>
+                            <span class="context-option" data-value="outro" data-i18n="relationOutro">Outro</span>
+                        </div>
+                    </div>
+
+                    <div class="context-field">
+                        <label data-i18n="initiativeLabel">Quem puxa mais a relação</label>
+                        <div class="context-options" data-context="initiative">
+                            <span class="context-option" data-value="eu" data-i18n="initiativeMe">Eu</span>
+                            <span class="context-option" data-value="outra" data-i18n="initiativeOther">Outra pessoa</span>
+                            <span class="context-option" data-value="equilibrado" data-i18n="initiativeBalanced">Equilibrado</span>
+                            <span class="context-option" data-value="dificil" data-i18n="initiativeHard">Difícil dizer</span>
+                        </div>
+                    </div>
+
+                    <div class="context-field">
+                        <label data-i18n="frequencyLabel">Frequência real de encontros</label>
+                        <div class="context-options" data-context="frequency">
+                            <span class="context-option" data-value="nunca" data-i18n="freqNever">Nunca</span>
+                            <span class="context-option" data-value="raramente" data-i18n="freqRarely">Raramente</span>
+                            <span class="context-option" data-value="mensal" data-i18n="freqMonthly">1x mês ou menos</span>
+                            <span class="context-option" data-value="semanal" data-i18n="freqWeekly">1x semana</span>
+                            <span class="context-option" data-value="varias" data-i18n="freqSeveral">Várias vezes/semana</span>
+                            <span class="context-option" data-value="diaria" data-i18n="freqDaily">Convivência diária</span>
+                        </div>
+                    </div>
+
+                    <div class="context-field">
+                        <label data-i18n="emotionalLabel">Estado emocional agora <span style="color:#737373">(opcional)</span></label>
+                        <div class="context-options" data-context="emotional">
+                            <span class="context-option" data-value="confusa" data-i18n="emotionalConfused">Confusa</span>
+                            <span class="context-option" data-value="ansiosa" data-i18n="emotionalAnxious">Ansiosa</span>
+                            <span class="context-option" data-value="cansada" data-i18n="emotionalTired">Cansada</span>
+                            <span class="context-option" data-value="tranquila" data-i18n="emotionalCalm">Tranquila</span>
+                            <span class="context-option" data-value="indiferente" data-i18n="emotionalIndifferent">Indiferente</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="error" class="error-msg"></div>
+                <button class="analyze-btn" id="analyzeBtn" onclick="analyzeConversation()">Analisar</button>
+            </div>
+
+            <div id="results" class="results">
+                <!-- Abuse/Risk Screening - Only shows if detected -->
+                <div class="result-block triagem-risco" id="triagemRisco">
+                    <h3><span class="emoji">🧯</span> <span data-i18n="screeningTitle">Sinais de risco/abuso (triagem)</span></h3>
+                    <div class="nivel" id="nivelRisco"></div>
+                    <p class="sinais" id="sinaisDetectados"></p>
+                    <div class="orientacao" id="orientacaoSegura"></div>
+                    <p class="disclaimer" data-i18n="screeningDisclaimer">Alpha não substitui apoio profissional. Se houver risco, priorize segurança e apoio.</p>
+                </div>
+
+                <!-- Main Output -->
+                <div class="result-block diagnostico-central">
+                    <h3><span class="emoji">📌</span> <span data-i18n="diagTitle">Diagnóstico Central</span></h3>
+                    <p id="diagnosticoCentral"></p>
+                </div>
+
+                <div class="result-block">
+                    <h3><span class="emoji">🔁</span> <span data-i18n="patternTitle">Padrão Recorrente</span></h3>
+                    <p id="padraoRecorrente"></p>
+                </div>
+
+                <div class="result-block risco-real">
+                    <h3><span class="emoji">⚠️</span> <span data-i18n="riskTitle">Risco Real</span></h3>
+                    <p id="riscoReal"></p>
+                </div>
+
+                <div class="result-block proximo-movimento">
+                    <h3><span class="emoji">👉</span> <span data-i18n="moveTitle">Próximo Movimento Recomendado</span></h3>
+                    <p id="proximoMovimento"></p>
+                </div>
+
+                <!-- Conditional Responses -->
+                <div class="result-block respostas-section" id="respostasSection">
+                    <h3 data-i18n="responsesTitle">Respostas Sugeridas</h3>
+                    <div id="respostasContainer"></div>
+                </div>
+
+                <p class="protecao" id="protecaoTexto">Você não está errada por querer clareza. Quem quer estar, encontra um jeito de ser claro.</p>
+                <p class="protecao frase-ancora" id="fraseAncora">O problema não é falta de sinais. É excesso de sinais que nunca viram ação.</p>
+
+                <!-- Feedback Form -->
+                <div class="feedback-section" id="feedbackSection">
+                    <h4 data-i18n="feedbackTitle">Ajude a melhorar o Alpha</h4>
+                    <form name="alpha-feedback" method="POST" data-netlify="true" id="feedbackForm">
+                        <input type="hidden" name="form-name" value="alpha-feedback">
+                        <input type="hidden" name="pattern" id="feedbackPattern">
+                        <input type="hidden" name="lang" id="feedbackLang">
+
+                        <div class="feedback-row">
+                            <label data-i18n="feedbackHelpful">Isso te ajudou?</label>
+                            <div class="feedback-thumbs">
+                                <button type="button" class="thumb-btn" data-value="yes" onclick="selectThumb(this)">👍</button>
+                                <button type="button" class="thumb-btn" data-value="no" onclick="selectThumb(this)">👎</button>
+                            </div>
+                            <input type="hidden" name="helpful" id="feedbackHelpful">
+                        </div>
+
+                        <div class="feedback-row">
+                            <label data-i18n="feedbackAccuracy">O quão certeiro foi? (0-10)</label>
+                            <input type="range" class="feedback-range" name="accuracy" min="0" max="10" value="5" id="feedbackAccuracy">
+                            <div class="range-labels">
+                                <span>0</span>
+                                <span>5</span>
+                                <span>10</span>
+                            </div>
+                        </div>
+
+                        <div class="feedback-row">
+                            <label data-i18n="feedbackConfused">O que ficou confuso?</label>
+                            <textarea class="feedback-textarea" name="confused" placeholder=""></textarea>
+                        </div>
+
+                        <div class="feedback-row">
+                            <label data-i18n="feedbackWanted">O que você gostaria que tivesse?</label>
+                            <textarea class="feedback-textarea" name="wanted" placeholder=""></textarea>
+                        </div>
+
+                        <div class="feedback-row">
+                            <label data-i18n="feedbackEmail">E-mail (opcional)</label>
+                            <input type="email" class="feedback-input" name="email" placeholder="">
+                        </div>
+
+                        <button type="submit" class="feedback-submit" data-i18n="feedbackSubmit">Enviar feedback</button>
+                    </form>
+                    <div class="feedback-success" id="feedbackSuccess">
+                        <p data-i18n="feedbackThanks">✓ Obrigada pelo feedback!</p>
+                    </div>
+                </div>
+
+                <button class="reset-btn" onclick="resetAnalysis()" id="resetBtn">Analisar outra conversa</button>
+            </div>
+        </main>
+
+        <footer>
+            <img src="logo-lolalab.svg" alt="LolaLab" class="footer-logo">
+        </footer>
+    </div>
+
+    <script>
+        let currentLang = 'pt';
+        let inputMode = 'text';
+        let uploadedImages = [];
+        let contextValues = { relationType: null, initiative: null, frequency: null, emotional: null };
+        let detectedPattern = '';
+
+        const i18n = {
+            pt: {
+                subtitle: 'Diagnóstico emocional',
+                textModeLabel: 'Colar texto',
+                textModeHint: 'rápido',
+                imageModeLabel: 'Enviar prints',
+                imageModeHint: 'mais fácil',
+                inputLabel: 'Cole a conversa abaixo',
+                placeholder: 'Cole aqui a conversa que você quer analisar...',
+                textMicrocopy: 'Cole como vier. A gente organiza.',
+                uploadText: 'Clique ou arraste até 10 prints',
+                uploadHint: 'Imagens não são armazenadas após análise.',
+                contextTitle: 'Contexto rápido',
+                doubtLabel: 'Sua dúvida em 1 frase *',
+                doubtPlaceholder: 'Ex: Ele gosta de mim ou só está enrolando?',
+                relationLabel: 'Tipo de vínculo',
+                relationAmoroso: 'Amoroso',
+                relationAmizade: 'Amizade',
+                relationFamilia: 'Família',
+                relationTrabalho: 'Trabalho',
+                relationOutro: 'Outro',
+                initiativeLabel: 'Quem puxa mais a relação',
+                initiativeMe: 'Eu',
+                initiativeOther: 'Outra pessoa',
+                initiativeBalanced: 'Equilibrado',
+                initiativeHard: 'Difícil dizer',
+                frequencyLabel: 'Frequência real de encontros',
+                freqNever: 'Nunca',
+                freqRarely: 'Raramente',
+                freqMonthly: '1x mês ou menos',
+                freqWeekly: '1x semana',
+                freqSeveral: 'Várias vezes/semana',
+                freqDaily: 'Convivência diária',
+                emotionalLabel: 'Estado emocional agora',
+                emotionalConfused: 'Confusa',
+                emotionalAnxious: 'Ansiosa',
+                emotionalTired: 'Cansada',
+                emotionalCalm: 'Tranquila',
+                emotionalIndifferent: 'Indiferente',
+                analyzeBtn: 'Analisar',
+                errorEmpty: 'Cole a conversa ou envie prints para começar.',
+                errorShort: 'Cole uma conversa mais completa ou envie mais prints.',
+                errorNoDoubt: 'Escreva sua dúvida principal em 1 frase.',
+                diagTitle: 'Diagnóstico Central',
+                patternTitle: 'Padrão Recorrente',
+                riskTitle: 'Risco Real',
+                moveTitle: 'Próximo Movimento Recomendado',
+                responsesTitle: 'Respostas Sugeridas',
+                copyBtn: 'Copiar',
+                copiedBtn: 'Copiado',
+                resetBtn: 'Analisar outra conversa',
+                protecao: 'Você não está errada por querer clareza. Quem quer estar, encontra um jeito de ser claro.',
+                fraseAncora: 'O problema não é falta de sinais. É excesso de sinais que nunca viram ação.',
+                screeningTitle: 'Sinais de risco/abuso (triagem)',
+                screeningDisclaimer: 'Alpha não substitui apoio profissional. Se houver risco, priorize segurança e apoio.',
+                nivelBaixo: 'Baixo',
+                nivelMedio: 'Médio',
+                nivelAlto: 'Alto',
+                feedbackTitle: 'Ajude a melhorar o Alpha',
+                feedbackHelpful: 'Isso te ajudou?',
+                feedbackAccuracy: 'O quão certeiro foi? (0-10)',
+                feedbackConfused: 'O que ficou confuso?',
+                feedbackWanted: 'O que você gostaria que tivesse?',
+                feedbackEmail: 'E-mail (opcional)',
+                feedbackSubmit: 'Enviar feedback',
+                feedbackThanks: '✓ Obrigada. Seu feedback ajuda a melhorar o Alpha.',
+                footerDisclaimer: 'Para fins de entretenimento. Não substitui acompanhamento profissional.'
+            },
+            en: {
+                subtitle: 'Emotional diagnosis',
+                textModeLabel: 'Paste text',
+                textModeHint: 'fast',
+                imageModeLabel: 'Upload screenshots',
+                imageModeHint: 'easier',
+                inputLabel: 'Paste the conversation below',
+                placeholder: 'Paste the conversation you want to analyze here...',
+                textMicrocopy: 'Paste as is. We\'ll organize it.',
+                uploadText: 'Click or drag up to 10 screenshots',
+                uploadHint: 'Images aren\'t stored after analysis.',
+                contextTitle: 'Quick context',
+                doubtLabel: 'Your doubt in 1 sentence *',
+                doubtPlaceholder: 'Ex: Does he like me or just stringing me along?',
+                relationLabel: 'Type of bond',
+                relationAmoroso: 'Romantic',
+                relationAmizade: 'Friendship',
+                relationFamilia: 'Family',
+                relationTrabalho: 'Work',
+                relationOutro: 'Other',
+                initiativeLabel: 'Who drives the relationship more',
+                initiativeMe: 'Me',
+                initiativeOther: 'Other person',
+                initiativeBalanced: 'Balanced',
+                initiativeHard: 'Hard to say',
+                frequencyLabel: 'Real meeting frequency',
+                freqNever: 'Never',
+                freqRarely: 'Rarely',
+                freqMonthly: '1x month or less',
+                freqWeekly: '1x week',
+                freqSeveral: 'Several times/week',
+                freqDaily: 'Daily contact',
+                emotionalLabel: 'Emotional state now',
+                emotionalConfused: 'Confused',
+                emotionalAnxious: 'Anxious',
+                emotionalTired: 'Tired',
+                emotionalCalm: 'Calm',
+                emotionalIndifferent: 'Indifferent',
+                analyzeBtn: 'Analyze',
+                errorEmpty: 'Paste the conversation or upload screenshots to start.',
+                errorShort: 'Paste a more complete conversation or upload more screenshots.',
+                errorNoDoubt: 'Write your main question in 1 sentence.',
+                diagTitle: 'Central Diagnosis',
+                patternTitle: 'Recurring Pattern',
+                riskTitle: 'Real Risk',
+                moveTitle: 'Recommended Next Move',
+                responsesTitle: 'Suggested Responses',
+                copyBtn: 'Copy',
+                copiedBtn: 'Copied',
+                resetBtn: 'Analyze another conversation',
+                protecao: 'You\'re not wrong for wanting clarity. Those who want to be present find a way to be clear.',
+                fraseAncora: 'The issue isn\'t lack of signals. It\'s signals that never turn into action.',
+                screeningTitle: 'Risk/abuse signs (screening)',
+                screeningDisclaimer: 'Alpha does not replace professional support. If there\'s risk, prioritize safety and support.',
+                nivelBaixo: 'Low',
+                nivelMedio: 'Medium',
+                nivelAlto: 'High',
+                feedbackTitle: 'Help improve Alpha',
+                feedbackHelpful: 'Did this help you?',
+                feedbackAccuracy: 'How accurate was it? (0-10)',
+                feedbackConfused: 'What was confusing?',
+                feedbackWanted: 'What would you have liked to see?',
+                feedbackEmail: 'Email (optional)',
+                feedbackSubmit: 'Send feedback',
+                feedbackThanks: '✓ Thank you. Your feedback helps improve Alpha.',
+                footerDisclaimer: 'For entertainment purposes. Does not replace professional guidance.'
+            }
+        };
+
+        const patterns = {
+            evasao: {
+                pt: ['vamos ver', 'depois a gente vê', 'não sei', 'talvez', 'quem sabe', 'um dia', 'quando der', 'se der', 'não estou pronto', 'preciso de tempo', 'não é o momento', 'agora não dá', 'vou pensar', 'deixa eu ver', 'não posso prometer', 'não sei te dizer', 'é complicado', 'é difícil', 'não tenho certeza', 'pode ser', 'sei lá', 'tanto faz', 'você decide', 'vamos ver no que dá', 'não vamos rotular'],
+                en: ["let's see", "we'll see", "i don't know", 'maybe', 'perhaps', 'someday', 'when possible', 'if possible', "i'm not ready", 'i need time', "it's not the right time", "can't right now", "i'll think about it", "can't promise", "i don't know what to tell you", "it's complicated", "i'm not sure", 'could be', 'whatever', 'you decide']
+            },
+            assimetria: {
+                pt: ['você vem', 'vem cá', 'vem aqui', 'passa aqui', 'me visita', 'quando você pode', 'você que sabe', 'se você quiser', 'como você preferir', 'fica a seu critério', 'não precisa', 'tanto faz pra mim', 'você escolhe', 'faz o que quiser'],
+                en: ['you come', 'come here', 'visit me', 'when can you', 'you decide', 'if you want', 'as you prefer', 'up to you', "doesn't matter to me"]
+            },
+            faltaClareza: {
+                pt: ['o que somos', 'onde isso vai dar', 'quero entender', 'preciso saber', 'futuro', 'pra onde', 'namoro', 'relacionamento', 'compromisso', 'exclusivo', 'sério', 'definir', 'clareza', 'certeza', 'insegura', 'ansiedade', 'não sei onde estou', 'confusa', 'o que você quer', 'o que a gente é'],
+                en: ['what are we', 'where is this going', 'i want to understand', 'i need to know', 'future', 'relationship', 'commitment', 'exclusive', 'serious', 'define', 'clarity', 'certainty', 'insecure', 'anxiety', 'confused']
+            },
+            reassuranceSemAcao: {
+                pt: ['gosto de você', 'gosto muito', 'te adoro', 'você é especial', 'você é importante', 'não quero te perder', 'não quero que pense', 'desculpa', 'me desculpa', 'não é isso', 'você entendeu errado', 'calma', 'relaxa', 'não fica assim', 'confia em mim', 'eu gosto de estar contigo', 'você sabe que gosto'],
+                en: ['i like you', 'i really like you', 'i adore you', "you're special", "you're important", "i don't want to lose you", "don't think that", 'sorry', "i'm sorry", "that's not it", 'you misunderstood', 'calm down', 'relax', "don't be like that", 'trust me']
+            },
+            baixaReciprocidade: {
+                pt: ['se quiser', 'quando quiser', 'se puder', 'quando puder', 'não precisa', 'fica tranquila', 'sem pressão', 'sem compromisso', 'a gente se fala', 'te aviso', 'depois eu falo', 'não sei quando', 'qualquer dia'],
+                en: ['if you want', 'whenever you want', 'if you can', 'when you can', 'no need', 'no pressure', 'no commitment', "we'll talk", "i'll let you know", "i'll tell you later"]
+            },
+            // NEW: Desvio sexual/humor como anestésico emocional
+            desvioSexualHumor: {
+                pt: ['brincadeira', 'tá brava', 'que drama', 'exagerada', 'neurótica', 'ciumenta', 'você viaja', 'vem cá que eu resolvo', 'vem que eu te acalmo', 'vem pro meu colo', 'deixa eu te dar um beijo', 'para de pensar nisso', 'esquece isso', 'muda de assunto', 'bora falar de outra coisa', 'saudade do seu corpo', 'quero te pegar', 'tô com tesão', 'manda foto', 'manda nude', 'quero te ver pelada'],
+                en: ['just kidding', 'are you mad', 'so dramatic', 'exaggerating', 'neurotic', 'jealous', 'you\'re tripping', 'come here i\'ll fix it', 'let me calm you down', 'come to my arms', 'let me kiss you', 'stop thinking about it', 'forget it', 'change the subject', 'let\'s talk about something else', 'miss your body', 'want you', 'i\'m horny', 'send pic', 'send nudes']
+            },
+            // NEW: Vulnerabilidade sem ação
+            vulnerabilidadeSemAcao: {
+                pt: ['eu sei que erro', 'sei que preciso melhorar', 'vou mudar', 'prometo', 'dessa vez vai ser diferente', 'me dá mais uma chance', 'não vai acontecer de novo', 'eu te amo', 'você sabe que te amo', 'só preciso de tempo', 'tô tentando', 'tô me esforçando', 'não é fácil pra mim', 'tenho medo de perder você', 'você é tudo pra mim', 'nunca amei assim', 'sei que fui errado', 'me perdoa', 'sei que machuquei você'],
+                en: ['i know i mess up', 'i know i need to improve', 'i\'ll change', 'i promise', 'this time will be different', 'give me another chance', 'it won\'t happen again', 'i love you', 'you know i love you', 'i just need time', 'i\'m trying', 'i\'m making an effort', 'it\'s not easy for me', 'i\'m afraid of losing you', 'you\'re everything to me', 'never loved like this', 'i know i was wrong', 'forgive me', 'i know i hurt you']
+            },
+            // NEW: Evasão elegante (frases específicas)
+            evasaoElegante: {
+                pt: ['prefiro deixar fluir', 'deixa acontecer', 'não vamos forçar', 'não vamos rotular', 'o tempo dirá', 'vai fluindo', 'sem pressa', 'vai com calma', 'a gente vai vendo', 'não precisa definir', 'não gosto de cobranças', 'você cobra demais', 'para de pressionar', 'cada um no seu tempo', 'estou bem assim', 'não precisa mudar nada'],
+                en: ['let it flow', 'let it happen', 'let\'s not force it', 'let\'s not label it', 'time will tell', 'go with the flow', 'no rush', 'take it easy', 'we\'ll see as we go', 'no need to define', 'i don\'t like being pressured', 'you pressure too much', 'stop pushing', 'everyone at their own pace', 'i\'m fine like this', 'no need to change anything']
+            },
+            // Abuse/Risk patterns
+            abuso: {
+                pt: ['você é louca', 'tá maluca', 'ninguém vai te querer', 'você não consegue', 'sem mim você não é nada', 'a culpa é sua', 'você me fez fazer isso', 'olha o que você me faz', 'não fala com', 'não pode sair', 'me mostra o celular', 'com quem você estava', 'tá me traindo', 'cuidado comigo', 'some da minha vida', 'vou contar pra todo mundo', 'ninguém vai acreditar', 'você é burra', 'você é feia', 'tenho vergonha de você', 'te bater', 'vou te machucar'],
+                en: ["you're crazy", 'you are crazy', 'no one will want you', "you can't do anything", "without me you're nothing", "it's your fault", 'you made me do this', 'look what you make me do', "don't talk to", "you can't go out", 'show me your phone', 'who were you with', "you're cheating", 'be careful with me', 'get out of my life', "i'll tell everyone", 'no one will believe', "you're stupid", "you're ugly", "i'm ashamed of you", 'hit you', "i'll hurt you"]
+            }
+        };
+
+        // Diagnostic content
+        const diagnosticos = {
+            pt: {
+                central: {
+                    evasaoAlta: "A pessoa está te mantendo em modo de espera. Não é confusão — é escolha.",
+                    assimetriaAlta: "Você carrega a relação sozinha. Isso não é parceria — é conveniência pro outro lado.",
+                    faltaClarezaAlta: "A falta de definição É a definição. O silêncio dele já é a resposta.",
+                    baixaReciprocidadeAlta: "Você dá, o outro recebe. Essa equação não fecha em nenhum cenário saudável.",
+                    desvioSexualHumorAlto: "Toda vez que você tenta aprofundar, ele desvia com sexo ou humor. Isso é anestésico emocional, não equilíbrio.",
+                    vulnerabilidadeSemAcaoAlta: "Vulnerabilidade verbal sem mudança de comportamento não é avanço — é estagnação emocional.",
+                    evasaoEleganteAlta: "'Deixa fluir' é a versão polida de 'não quero me comprometer'. A porta de saída segue aberta.",
+                    misto: "Evasão + assimetria: você busca, o outro recua. Esse padrão não muda sozinho.",
+                    saudavel: "Essa relação parece saudável. Não identificamos padrões de risco ou desgaste emocional.",
+                    // AMIZADE
+                    amizadeDistante: "A amizade parece ter esfriado. Pode ser fase, pode ser afastamento natural. Vale observar sem pressão.",
+                    amizadeDesigual: "Você parece puxar mais a amizade do que ela. Isso não significa que não gosta de você — pode ser fase, rotina ou estilo diferente de se relacionar.",
+                    amizadeSaudavel: "Essa amizade parece genuína. A troca flui sem forçar, e isso é raro. Cuide dela.",
+                    amizadeDuvidosa: "É difícil saber se alguém é amigo de verdade só por mensagens. Amizade se prova no tempo e nas ações, não nas palavras.",
+                    // FAMÍLIA
+                    familiaDistante: "Distância familiar pode doer, mas geralmente é sobre limites, não rejeição. Dê espaço sem ressentimento.",
+                    familiaDesigual: "Dinâmicas familiares são complexas. Níveis diferentes de esforço são comuns — nem sempre é sobre amor.",
+                    familiaSaudavel: "Essa conexão familiar parece equilibrada. Vínculos saudáveis se constroem com respeito, não obrigação.",
+                    familiaDificil: "Relações familiares carregam história. Uma conversa não mostra o quadro todo.",
+                    // TRABALHO
+                    trabalhoProfissional: "Isso parece comunicação profissional. Mantenha limites claros — relações de trabalho não são pessoais.",
+                    trabalhoDesigual: "Dinâmicas de poder no trabalho são normais. Não confunda distância profissional com rejeição pessoal.",
+                    trabalhoSaudavel: "Relação profissional com bons limites. Mantenha assim.",
+                    trabalhoComplicado: "Relações de trabalho podem ser complicadas. Mantenha profissionalismo e não invista emocionalmente em excesso."
+                },
+                padrao: {
+                    evasaoAlta: "Frases vagas recorrentes: 'vamos ver', 'não sei', 'quando der'. Cada uma é uma porta de saída mantida aberta.",
+                    assimetriaAlta: "O esforço vem sempre do mesmo lado. Iniciativa, deslocamento, disponibilidade — tudo seu.",
+                    faltaClarezaAlta: "Pedidos de clareza são respondidos com mais ambiguidade. Isso é circular e intencional.",
+                    baixaReciprocidadeAlta: "Disponibilidade passiva: 'se você quiser', 'quando puder'. Quem quer, age. Quem não quer, espera.",
+                    desvioSexualHumorAlto: "Tentativas de aprofundar são seguidas de piadas, sexualização ou mudança de assunto. O desvio emocional é sistemático.",
+                    vulnerabilidadeSemAcaoAlta: "Pedidos de desculpa, promessas de mudança, declarações de amor — mas o comportamento permanece igual. Vulnerabilidade performática.",
+                    evasaoEleganteAlta: "'Prefiro deixar fluir', 'não vamos rotular', 'cada um no seu tempo'. Evasão disfarçada de maturidade emocional.",
+                    misto: "Palavras bonitas sem ação correspondente. Carinho verbal que nunca vira compromisso real.",
+                    saudavel: "A comunicação flui bem. Há reciprocidade e respeito mútuo na troca.",
+                    // AMIZADE
+                    amizadeDistante: "Respostas mais curtas, menos iniciativa, menos disponibilidade. Pode ser só momento de vida.",
+                    amizadeDesigual: "Você parece investir mais tempo e energia na amizade. Pode ser diferença de estilo, não necessariamente falta de carinho.",
+                    amizadeSaudavel: "Humor, leveza, reciprocidade. Vocês se entendem sem precisar explicar muito.",
+                    amizadeDuvidosa: "Amizade é construída com consistência. Uma conversa não mostra o quadro todo.",
+                    // FAMÍLIA
+                    familiaDistante: "Menos contato, respostas pragmáticas. Pode ser proteção emocional, não necessariamente falta de amor.",
+                    familiaDesigual: "A família nem sempre demonstra afeto da mesma forma. Gerações diferentes, linguagens diferentes.",
+                    familiaSaudavel: "Respeito mútuo, mesmo com diferenças. Isso é maturidade familiar.",
+                    familiaDificil: "Padrões familiares são difíceis de mudar. Observe o contexto maior, não só uma conversa.",
+                    // TRABALHO
+                    trabalhoProfissional: "Tom formal, objetividade. Isso é profissionalismo, não frieza.",
+                    trabalhoDesigual: "Hierarquias criam distância natural. Não personalize o que é estrutural.",
+                    trabalhoSaudavel: "Comunicação clara e respeitosa. Bons limites profissionais.",
+                    trabalhoComplicado: "Mistura de pessoal e profissional. Cuidado com expectativas fora do contexto de trabalho."
+                },
+                risco: {
+                    evasaoAlta: "Você vai continuar investindo energia em algo que não evolui. Meses vão passar e nada vai mudar.",
+                    assimetriaAlta: "Você vai se esgotar mantendo algo que o outro não sustenta. Desequilíbrio crônico destrói autoestima.",
+                    faltaClarezaAlta: "O limbo emocional vai gerar ansiedade constante. Você merece clareza, não adivinhação.",
+                    baixaReciprocidadeAlta: "Você vai normalizar receber menos do que dá. Isso recalibra seu padrão pra baixo.",
+                    desvioSexualHumorAlto: "Você vai continuar tentando conexão emocional e sendo redirecionada para superficialidade. Exaustão garantida.",
+                    vulnerabilidadeSemAcaoAlta: "Você vai ficar presa no ciclo de 'dessa vez vai ser diferente'. Esperança sem evidência.",
+                    evasaoEleganteAlta: "Você vai aceitar a indefinição como normalidade. O 'fluxo' é unilateral — só beneficia quem evita compromisso.",
+                    misto: "Quanto mais você tenta, mais o outro se acomoda. O ciclo só quebra quando você para.",
+                    saudavel: "Relação equilibrada. Continue cultivando essa conexão com presença e honestidade.",
+                    // AMIZADE
+                    amizadeDistante: "Forçar proximidade pode afastar ainda mais. Deixe a amizade respirar.",
+                    amizadeDesigual: "Amizades passam por fases. Não tire conclusões definitivas por um momento.",
+                    amizadeSaudavel: "Nenhum risco identificado. Amizades leves são valiosas — não complique.",
+                    amizadeDuvidosa: "O risco é criar expectativas irreais. Deixe o tempo mostrar quem essa pessoa é.",
+                    // FAMÍLIA
+                    familiaDistante: "Forçar aproximação pode criar mais resistência. Respeite o tempo do outro.",
+                    familiaDesigual: "Cobrar reciprocidade de família pode gerar mais conflito. Aceite as limitações.",
+                    familiaSaudavel: "Nenhum risco identificado. Relações familiares saudáveis são raras — valorize.",
+                    familiaDificil: "O risco é repetir padrões antigos. Quebre o ciclo com limites saudáveis.",
+                    // TRABALHO
+                    trabalhoProfissional: "Nenhum risco identificado. Mantenha a relação no contexto profissional.",
+                    trabalhoDesigual: "O risco é levar para o pessoal o que é estrutural. Mantenha perspectiva.",
+                    trabalhoSaudavel: "Nenhum risco. Continue mantendo limites claros.",
+                    trabalhoComplicado: "O risco é misturar expectativas pessoais com profissionais. Defina limites."
+                },
+                movimento: {
+                    evasaoAlta: "Faça UMA pergunta direta: 'Você quer construir algo comigo, sim ou não?' Aceite a resposta — inclusive o silêncio.",
+                    assimetriaAlta: "Pare de iniciar por 2 semanas. Observe quem sustenta a relação quando você recua. A resposta estará clara.",
+                    faltaClarezaAlta: "Verbalize: 'Preciso de clareza pra continuar.' Defina prazo interno. Não dê mais chances sem ação concreta.",
+                    baixaReciprocidadeAlta: "Reduza disponibilidade. Quem sente sua ausência, busca. Quem não sente, já te deu a resposta.",
+                    desvioSexualHumorAlto: "Próxima vez que desviar: 'Prefiro resolver o que está pendente antes de continuar nesse tom.' Não aceite a mudança de assunto.",
+                    vulnerabilidadeSemAcaoAlta: "Pare de ouvir promessas. Diga: 'Não preciso de palavras, preciso de mudança. Me mostra com ação.' Defina prazo interno.",
+                    evasaoEleganteAlta: "Confronte a evasão disfarçada: 'Fluir pra onde? Preciso saber se isso tem futuro ou estou perdendo tempo.'",
+                    misto: "Última tentativa direta. Se a resposta for vaga, encerre com respeito. Você já fez sua parte.",
+                    saudavel: "Aproveite o que está funcionando. Relações boas merecem ser nutridas, não analisadas em excesso.",
+                    // AMIZADE
+                    amizadeDistante: "Dê espaço. Se a amizade for real, ela volta naturalmente. Se não voltar, você tem sua resposta.",
+                    amizadeDesigual: "Pare de puxar por um tempo. Observe se ela vem até você. Amizade verdadeira não precisa de esforço constante.",
+                    amizadeSaudavel: "Continue sendo presente. Amizades boas são raras — valorize essa.",
+                    amizadeDuvidosa: "Observe as ações ao longo do tempo, não só as palavras. Amizade verdadeira se prova nos momentos difíceis.",
+                    // FAMÍLIA
+                    familiaDistante: "Mantenha a porta aberta sem forçar. Família tem seu próprio tempo.",
+                    familiaDesigual: "Aceite que nem todos expressam amor da mesma forma. Foque no que está ao seu alcance.",
+                    familiaSaudavel: "Continue cultivando essa conexão. Família saudável é base de tudo.",
+                    familiaDificil: "Proteja sua paz. Você pode amar de longe se necessário.",
+                    // TRABALHO
+                    trabalhoProfissional: "Mantenha profissionalismo. Não misture expectativas pessoais.",
+                    trabalhoDesigual: "Foque no seu trabalho, não nas dinâmicas de poder. Entregue resultados.",
+                    trabalhoSaudavel: "Continue assim. Boas relações de trabalho facilitam tudo.",
+                    trabalhoComplicado: "Estabeleça limites claros. Trabalho é trabalho, pessoal é pessoal."
+                }
+            },
+            en: {
+                central: {
+                    evasaoAlta: "They're keeping you on hold. This isn't confusion — it's a choice.",
+                    assimetriaAlta: "You're carrying the relationship alone. This isn't partnership — it's convenience for them.",
+                    faltaClarezaAlta: "The lack of definition IS the definition. Their silence is already the answer.",
+                    baixaReciprocidadeAlta: "You give, they take. This equation doesn't work in any healthy scenario.",
+                    desvioSexualHumorAlto: "Every time you try to go deeper, they deflect with sex or humor. This is emotional numbing, not balance.",
+                    vulnerabilidadeSemAcaoAlta: "Verbal vulnerability without behavior change isn't progress — it's emotional stagnation.",
+                    evasaoEleganteAlta: "'Let it flow' is the polished version of 'I don't want to commit'. The exit door remains open.",
+                    misto: "Avoidance + asymmetry: you seek, they retreat. This pattern doesn't change on its own.",
+                    saudavel: "This relationship appears healthy. No patterns of risk or emotional strain detected.",
+                    // FRIENDSHIP
+                    amizadeDistante: "The friendship seems to have cooled off. Could be a phase, could be natural drifting. Worth observing without pressure.",
+                    amizadeDesigual: "You seem to put more effort into the friendship. This doesn't mean they don't care — could be their phase, routine, or different relating style.",
+                    amizadeSaudavel: "This friendship seems genuine. The exchange flows without forcing, and that's rare. Treasure it.",
+                    amizadeDuvidosa: "It's hard to know if someone is a true friend just from messages. Friendship is proven over time and actions, not words.",
+                    // FAMILY
+                    familiaDistante: "Family distance can hurt, but it's often about boundaries, not rejection. Give space without resentment.",
+                    familiaDesigual: "Family dynamics are complex. Different effort levels are common — it's not always about love.",
+                    familiaSaudavel: "This family connection seems balanced. Healthy family bonds are built on respect, not obligation.",
+                    familiaDificil: "Family relationships carry history. One conversation doesn't show the full picture.",
+                    // WORK
+                    trabalhoProfissional: "This seems like professional communication. Keep boundaries clear — work relationships aren't personal.",
+                    trabalhoDesigual: "Power dynamics at work are normal. Don't confuse professional distance with personal rejection.",
+                    trabalhoSaudavel: "Professional relationship with good boundaries. Keep it that way.",
+                    trabalhoComplicado: "Work relationships can be tricky. Maintain professionalism and don't over-invest emotionally."
+                },
+                padrao: {
+                    evasaoAlta: "Recurring vague phrases: 'let's see', 'I don't know', 'when possible'. Each one is an exit door kept open.",
+                    assimetriaAlta: "The effort always comes from the same side. Initiative, travel, availability — all yours.",
+                    faltaClarezaAlta: "Requests for clarity are met with more ambiguity. This is circular and intentional.",
+                    baixaReciprocidadeAlta: "Passive availability: 'if you want', 'when you can'. Those who want, act. Those who don't, wait.",
+                    desvioSexualHumorAlto: "Attempts to deepen are followed by jokes, sexualization, or topic changes. The emotional deflection is systematic.",
+                    vulnerabilidadeSemAcaoAlta: "Apologies, promises to change, declarations of love — but behavior stays the same. Performative vulnerability.",
+                    evasaoEleganteAlta: "'Let it flow', 'let's not label it', 'everyone at their own pace'. Avoidance disguised as emotional maturity.",
+                    misto: "Sweet words without corresponding action. Verbal affection that never becomes real commitment.",
+                    saudavel: "Communication flows well. There's reciprocity and mutual respect in the exchange.",
+                    // FRIENDSHIP
+                    amizadeDistante: "Shorter responses, less initiative, less availability. Could just be a life phase.",
+                    amizadeDesigual: "You seem to invest more time and energy. Could be different styles, not necessarily lack of care.",
+                    amizadeSaudavel: "Humor, lightness, reciprocity. You understand each other without much explaining.",
+                    amizadeDuvidosa: "Friendship is built with consistency. One conversation doesn't show the whole picture.",
+                    // FAMILY
+                    familiaDistante: "Less contact, pragmatic responses. Could be emotional protection, not necessarily lack of love.",
+                    familiaDesigual: "Family doesn't always show affection the same way. Different generations, different languages.",
+                    familiaSaudavel: "Mutual respect despite differences. That's family maturity.",
+                    familiaDificil: "Family patterns are hard to change. Look at the bigger context, not just one conversation.",
+                    // WORK
+                    trabalhoProfissional: "Formal tone, objectivity. That's professionalism, not coldness.",
+                    trabalhoDesigual: "Hierarchies create natural distance. Don't personalize what's structural.",
+                    trabalhoSaudavel: "Clear and respectful communication. Good professional boundaries.",
+                    trabalhoComplicado: "Mix of personal and professional. Careful with expectations outside work context."
+                },
+                risco: {
+                    evasaoAlta: "You'll keep investing energy in something that doesn't evolve. Months will pass and nothing will change.",
+                    assimetriaAlta: "You'll exhaust yourself maintaining something they don't sustain. Chronic imbalance destroys self-esteem.",
+                    faltaClarezaAlta: "Emotional limbo will generate constant anxiety. You deserve clarity, not guessing.",
+                    baixaReciprocidadeAlta: "You'll normalize receiving less than you give. This recalibrates your standards downward.",
+                    desvioSexualHumorAlto: "You'll keep seeking emotional connection and being redirected to superficiality. Exhaustion guaranteed.",
+                    vulnerabilidadeSemAcaoAlta: "You'll stay trapped in the 'this time will be different' cycle. Hope without evidence.",
+                    evasaoEleganteAlta: "You'll accept indefinition as normal. The 'flow' is one-sided — only benefits whoever avoids commitment.",
+                    misto: "The more you try, the more they settle. The cycle only breaks when you stop.",
+                    saudavel: "Balanced relationship. Keep cultivating this connection with presence and honesty.",
+                    // FRIENDSHIP
+                    amizadeDistante: "Forcing closeness may push further away. Let the friendship breathe.",
+                    amizadeDesigual: "Friendships go through phases. Don't draw definitive conclusions from one moment.",
+                    amizadeSaudavel: "No risk identified. Light friendships are valuable — don't complicate.",
+                    amizadeDuvidosa: "The risk is creating unrealistic expectations. Let time show who this person is.",
+                    // FAMILY
+                    familiaDistante: "Forcing connection may create more resistance. Respect their time.",
+                    familiaDesigual: "Demanding reciprocity from family may create more conflict. Accept limitations.",
+                    familiaSaudavel: "No risk identified. Healthy family bonds are rare — treasure them.",
+                    familiaDificil: "The risk is repeating old patterns. Break the cycle with healthy boundaries.",
+                    // WORK
+                    trabalhoProfissional: "No risk identified. Keep the relationship in professional context.",
+                    trabalhoDesigual: "The risk is taking personally what's structural. Keep perspective.",
+                    trabalhoSaudavel: "No risk. Keep maintaining clear boundaries.",
+                    trabalhoComplicado: "The risk is mixing personal expectations with professional ones. Set boundaries."
+                },
+                movimento: {
+                    evasaoAlta: "Ask ONE direct question: 'Do you want to build something with me, yes or no?' Accept the answer — including silence.",
+                    assimetriaAlta: "Stop initiating for 2 weeks. Observe who sustains the relationship when you step back. The answer will be clear.",
+                    faltaClarezaAlta: "Verbalize: 'I need clarity to continue.' Set an internal deadline. Don't give more chances without concrete action.",
+                    baixaReciprocidadeAlta: "Reduce availability. Those who feel your absence will seek you. Those who don't already gave you the answer.",
+                    desvioSexualHumorAlto: "Next time they deflect: 'I'd rather resolve what's pending before continuing in this tone.' Don't accept the topic change.",
+                    vulnerabilidadeSemAcaoAlta: "Stop listening to promises. Say: 'I don't need words, I need change. Show me with actions.' Set internal deadline.",
+                    evasaoEleganteAlta: "Confront the disguised avoidance: 'Flow to where? I need to know if this has a future or if I'm wasting time.'",
+                    misto: "One final direct attempt. If the answer is vague, end with respect. You've done your part.",
+                    saudavel: "Enjoy what's working. Good relationships deserve to be nurtured, not over-analyzed.",
+                    // FRIENDSHIP
+                    amizadeDistante: "Give space. If the friendship is real, it returns naturally. If not, you have your answer.",
+                    amizadeDesigual: "Stop reaching out for a while. See if they come to you. True friendship doesn't need constant effort.",
+                    amizadeSaudavel: "Keep being present. Good friendships are rare — treasure this one.",
+                    amizadeDuvidosa: "Watch actions over time, not just words. True friendship is proven in hard moments.",
+                    // FAMILY
+                    familiaDistante: "Keep the door open without forcing. Family has its own timing.",
+                    familiaDesigual: "Accept that not everyone expresses love the same way. Focus on what's within your reach.",
+                    familiaSaudavel: "Keep nurturing this connection. Healthy family is the foundation of everything.",
+                    familiaDificil: "Protect your peace. You can love from a distance if necessary.",
+                    // WORK
+                    trabalhoProfissional: "Stay professional. Don't mix personal expectations.",
+                    trabalhoDesigual: "Focus on your work, not power dynamics. Deliver results.",
+                    trabalhoSaudavel: "Keep it up. Good work relationships make everything easier.",
+                    trabalhoComplicado: "Set clear boundaries. Work is work, personal is personal."
+                }
+            }
+        };
+
+        // CONDITIONAL RESPONSES based on pattern
+        const respostasCondicionais = {
+            pt: {
+                evasaoAlta: [
+                    { tipo: 'Forçar posição', texto: 'Preciso de uma resposta clara: você quer construir algo comigo ou não?' },
+                    { tipo: 'Encerrar com dignidade', texto: 'Entendi. Vou interpretar a falta de clareza como resposta. Tudo de bom.' },
+                    { tipo: 'Definir prazo', texto: 'Vou te dar uma semana pra pensar. Se não tiver resposta, sigo em frente.' }
+                ],
+                assimetriaAlta: [
+                    { tipo: 'Retirada estratégica', texto: '[Não responder. Observe se a pessoa busca você quando você para de ir atrás.]' },
+                    { tipo: 'Pedir reciprocidade', texto: 'Dessa vez, você vem até mim. Quero ver o quanto você quer estar aqui.' },
+                    { tipo: 'Confronto direto', texto: 'Percebi que sempre sou eu quem corre atrás. Isso não funciona pra mim.' }
+                ],
+                faltaClarezaAlta: [
+                    { tipo: 'Exigir definição', texto: 'Preciso saber o que somos. Se não der pra definir, não dá pra continuar.' },
+                    { tipo: 'Última chance', texto: 'Vou perguntar uma última vez: o que você quer comigo?' },
+                    { tipo: 'Encerrar o limbo', texto: 'Não consigo mais ficar nesse entre. Ou avança ou eu saio.' }
+                ],
+                baixaReciprocidadeAlta: [
+                    { tipo: 'Teste de interesse', texto: '[Ficar em silêncio por 3-5 dias. Se não vier atrás, você tem a resposta.]' },
+                    { tipo: 'Pedir ação concreta', texto: 'Quero que você planeje algo pra gente. Quero ver você se movendo.' },
+                    { tipo: 'Verbalizar o desequilíbrio', texto: 'Sinto que dou mais do que recebo. Isso precisa mudar.' }
+                ],
+                misto: [
+                    { tipo: 'Confronto final', texto: 'Você quer estar comigo ou não? Preciso de uma resposta, não de mais palavras.' },
+                    { tipo: 'Retirada com dignidade', texto: 'Vou recuar. Se sentir minha falta, você sabe onde me encontrar.' },
+                    { tipo: 'Encerrar o ciclo', texto: 'Cansei de correr atrás de algo que não se move. Vou seguir.' }
+                ],
+                desvioSexualHumorAlto: [
+                    { tipo: 'Dessexualizar', texto: 'Prefiro resolver o que está pendente antes de continuar nesse tom.' },
+                    { tipo: 'Confrontar o desvio', texto: 'Toda vez que tento conversar sério, você desvia. Isso não funciona mais pra mim.' },
+                    { tipo: 'Exigir profundidade', texto: 'Preciso de conexão emocional, não só física. Se isso não é possível, preciso saber.' }
+                ],
+                vulnerabilidadeSemAcaoAlta: [
+                    { tipo: 'Exigir ação', texto: 'Não preciso de promessas. Preciso de mudança. Me mostra com ação.' },
+                    { tipo: 'Estabelecer prazo', texto: 'Vou observar as próximas semanas. Palavras não valem mais nada — só comportamento.' },
+                    { tipo: 'Confronto direto', texto: 'Você já disse isso antes. O que vai ser diferente dessa vez? Me mostra, não me conta.' }
+                ],
+                evasaoEleganteAlta: [
+                    { tipo: 'Confrontar a evasão', texto: 'Fluir pra onde? Preciso saber se isso tem futuro ou se estou perdendo tempo.' },
+                    { tipo: 'Forçar definição', texto: '"Deixar rolar" funciona pra você, não pra mim. Preciso de clareza.' },
+                    { tipo: 'Definir prazo', texto: 'Não vou mais aceitar indefinição. Me diz o que você quer até [data]. Se não souber, eu decido por nós dois.' }
+                ],
+                saudavel: [
+                    { tipo: 'Celebrar a conexão', texto: 'Gosto muito de ter você por perto. Essa troca me faz bem.' },
+                    { tipo: 'Nutrir a relação', texto: 'Que bom que a gente consegue conversar assim. Vamos manter isso.' }
+                ],
+                // AMIZADE
+                amizadeDistante: [
+                    { tipo: 'Dar espaço', texto: 'Sinto que você tá num momento diferente. Tô aqui se precisar.' },
+                    { tipo: 'Check-in leve', texto: 'Sumiu! Tudo bem por aí? Sem cobrança, só queria saber de você.' }
+                ],
+                amizadeDesigual: [
+                    { tipo: 'Observar', texto: '[Não puxe conversa por uns dias. Veja se ela vem até você.]' },
+                    { tipo: 'Ser honesta', texto: 'Sinto que ando puxando mais a amizade. Tá tudo bem com a gente?' }
+                ],
+                amizadeSaudavel: [
+                    { tipo: 'Valorizar', texto: 'Gosto muito da nossa amizade. Obrigada por existir.' },
+                    { tipo: 'Manter presente', texto: 'Bora marcar algo? Faz tempo que não nos vemos.' }
+                ],
+                amizadeDuvidosa: [
+                    { tipo: 'Observar ações', texto: '[Observe como ela age nos próximos encontros. Amizade se prova com consistência.]' },
+                    { tipo: 'Ser direta', texto: 'Às vezes fico na dúvida sobre nossa amizade. Posso ser honesta com você?' }
+                ],
+                // FAMÍLIA
+                familiaDistante: [
+                    { tipo: 'Manter porta aberta', texto: 'Sei que a gente não conversa muito, mas tô aqui se precisar.' },
+                    { tipo: 'Respeitar limites', texto: '[Dê espaço. Família tem seu próprio tempo.]' }
+                ],
+                familiaDesigual: [
+                    { tipo: 'Aceitar diferenças', texto: '[Nem todos expressam amor igual. Observe as ações, não só palavras.]' },
+                    { tipo: 'Focar no possível', texto: 'Gostaria que a gente conversasse mais, mas respeito seu tempo.' }
+                ],
+                familiaSaudavel: [
+                    { tipo: 'Valorizar', texto: 'Gosto muito de ter você na minha vida. Obrigada por tudo.' },
+                    { tipo: 'Fortalecer', texto: 'Que bom que a gente se entende. Quero manter isso.' }
+                ],
+                familiaDificil: [
+                    { tipo: 'Proteger-se', texto: '[Mantenha distância saudável se necessário. Você pode amar de longe.]' },
+                    { tipo: 'Ser clara', texto: 'Preciso de respeito pra continuar essa relação.' }
+                ],
+                // TRABALHO
+                trabalhoProfissional: [
+                    { tipo: 'Manter limites', texto: '[Mantenha a relação no contexto profissional.]' },
+                    { tipo: 'Ser objetiva', texto: 'Vamos focar no que precisamos resolver.' }
+                ],
+                trabalhoDesigual: [
+                    { tipo: 'Não personalizar', texto: '[Dinâmicas de poder são normais. Não leve para o pessoal.]' },
+                    { tipo: 'Focar em resultados', texto: 'Vou me concentrar em entregar bons resultados.' }
+                ],
+                trabalhoSaudavel: [
+                    { tipo: 'Manter profissionalismo', texto: 'Obrigada pela parceria. Trabalhar com você facilita muito.' },
+                    { tipo: 'Valorizar', texto: 'Gosto de como a gente trabalha junto. Vamos manter assim.' }
+                ],
+                trabalhoComplicado: [
+                    { tipo: 'Estabelecer limites', texto: 'Prefiro manter nossa relação no contexto de trabalho.' },
+                    { tipo: 'Ser clara', texto: '[Defina limites claros entre pessoal e profissional.]' }
+                ]
+            },
+            en: {
+                evasaoAlta: [
+                    { tipo: 'Force position', texto: 'I need a clear answer: do you want to build something with me or not?' },
+                    { tipo: 'Exit with dignity', texto: 'I understand. I\'ll interpret the lack of clarity as an answer. All the best.' },
+                    { tipo: 'Set deadline', texto: 'I\'ll give you a week to think. If there\'s no answer, I\'m moving on.' }
+                ],
+                assimetriaAlta: [
+                    { tipo: 'Strategic withdrawal', texto: '[Don\'t respond. Observe if they reach out when you stop chasing.]' },
+                    { tipo: 'Ask for reciprocity', texto: 'This time, you come to me. I want to see how much you want to be here.' },
+                    { tipo: 'Direct confrontation', texto: 'I noticed I\'m always the one chasing. This doesn\'t work for me.' }
+                ],
+                faltaClarezaAlta: [
+                    { tipo: 'Demand definition', texto: 'I need to know what we are. If we can\'t define it, we can\'t continue.' },
+                    { tipo: 'Last chance', texto: 'I\'m asking one last time: what do you want with me?' },
+                    { tipo: 'End the limbo', texto: 'I can\'t stay in this in-between anymore. Either we move forward or I\'m out.' }
+                ],
+                baixaReciprocidadeAlta: [
+                    { tipo: 'Interest test', texto: '[Stay silent for 3-5 days. If they don\'t reach out, you have your answer.]' },
+                    { tipo: 'Ask for action', texto: 'I want you to plan something for us. I want to see you making an effort.' },
+                    { tipo: 'Verbalize imbalance', texto: 'I feel like I give more than I receive. This needs to change.' }
+                ],
+                misto: [
+                    { tipo: 'Final confrontation', texto: 'Do you want to be with me or not? I need an answer, not more words.' },
+                    { tipo: 'Dignified withdrawal', texto: 'I\'m stepping back. If you miss me, you know where to find me.' },
+                    { tipo: 'End the cycle', texto: 'I\'m tired of chasing something that doesn\'t move. I\'m moving on.' }
+                ],
+                desvioSexualHumorAlto: [
+                    { tipo: 'Desexualize', texto: 'I\'d rather resolve what\'s pending before continuing in this tone.' },
+                    { tipo: 'Confront deflection', texto: 'Every time I try to have a serious conversation, you deflect. This doesn\'t work for me anymore.' },
+                    { tipo: 'Demand depth', texto: 'I need emotional connection, not just physical. If that\'s not possible, I need to know.' }
+                ],
+                vulnerabilidadeSemAcaoAlta: [
+                    { tipo: 'Demand action', texto: 'I don\'t need promises. I need change. Show me with actions.' },
+                    { tipo: 'Set deadline', texto: 'I\'ll be watching the next few weeks. Words mean nothing now — only behavior counts.' },
+                    { tipo: 'Direct confrontation', texto: 'You\'ve said this before. What will be different this time? Show me, don\'t tell me.' }
+                ],
+                evasaoEleganteAlta: [
+                    { tipo: 'Confront avoidance', texto: 'Flow to where? I need to know if this has a future or if I\'m wasting my time.' },
+                    { tipo: 'Force definition', texto: '"Going with the flow" works for you, not for me. I need clarity.' },
+                    { tipo: 'Set deadline', texto: 'I won\'t accept indefinition anymore. Tell me what you want by [date]. If you don\'t know, I\'ll decide for both of us.' }
+                ],
+                saudavel: [
+                    { tipo: 'Celebrate connection', texto: 'I really appreciate having you in my life. This bond is good for me.' },
+                    { tipo: 'Nurture relationship', texto: 'I\'m glad we can talk like this. Let\'s keep nurturing this.' }
+                ],
+                // FRIENDSHIP
+                amizadeDistante: [
+                    { tipo: 'Give space', texto: 'I feel like you\'re in a different place right now. I\'m here if you need me.' },
+                    { tipo: 'Light check-in', texto: 'Hey! Everything okay? No pressure, just wanted to check on you.' }
+                ],
+                amizadeDesigual: [
+                    { tipo: 'Observe', texto: '[Don\'t reach out for a few days. See if they come to you.]' },
+                    { tipo: 'Be honest', texto: 'I feel like I\'ve been carrying the friendship more. Is everything okay with us?' }
+                ],
+                amizadeSaudavel: [
+                    { tipo: 'Appreciate', texto: 'I really value our friendship. Thanks for being you.' },
+                    { tipo: 'Stay present', texto: 'Let\'s hang out soon? It\'s been a while.' }
+                ],
+                amizadeDuvidosa: [
+                    { tipo: 'Watch actions', texto: '[Observe how they act in the next few encounters. Friendship is proven through consistency.]' },
+                    { tipo: 'Be direct', texto: 'Sometimes I wonder about our friendship. Can I be honest with you?' }
+                ],
+                // FAMILY
+                familiaDistante: [
+                    { tipo: 'Keep door open', texto: 'I know we don\'t talk much, but I\'m here if you need me.' },
+                    { tipo: 'Respect boundaries', texto: '[Give space. Family has its own timing.]' }
+                ],
+                familiaDesigual: [
+                    { tipo: 'Accept differences', texto: '[Not everyone expresses love the same way. Watch actions, not just words.]' },
+                    { tipo: 'Focus on possible', texto: 'I\'d like us to talk more, but I respect your space.' }
+                ],
+                familiaSaudavel: [
+                    { tipo: 'Appreciate', texto: 'I\'m grateful to have you in my life. Thank you for everything.' },
+                    { tipo: 'Strengthen', texto: 'I\'m glad we understand each other. I want to keep it this way.' }
+                ],
+                familiaDificil: [
+                    { tipo: 'Protect yourself', texto: '[Maintain healthy distance if needed. You can love from afar.]' },
+                    { tipo: 'Be clear', texto: 'I need respect to continue this relationship.' }
+                ],
+                // WORK
+                trabalhoProfissional: [
+                    { tipo: 'Maintain boundaries', texto: '[Keep the relationship in professional context.]' },
+                    { tipo: 'Be objective', texto: 'Let\'s focus on what we need to solve.' }
+                ],
+                trabalhoDesigual: [
+                    { tipo: 'Don\'t personalize', texto: '[Power dynamics are normal. Don\'t take it personally.]' },
+                    { tipo: 'Focus on results', texto: 'I\'ll focus on delivering good results.' }
+                ],
+                trabalhoSaudavel: [
+                    { tipo: 'Stay professional', texto: 'Thanks for the partnership. Working with you makes things easier.' },
+                    { tipo: 'Appreciate', texto: 'I like how we work together. Let\'s keep it this way.' }
+                ],
+                trabalhoComplicado: [
+                    { tipo: 'Set boundaries', texto: 'I prefer to keep our relationship in the work context.' },
+                    { tipo: 'Be clear', texto: '[Set clear boundaries between personal and professional.]' }
+                ]
+            }
+        };
+
+        // Abuse screening content
+        const triagemAbuso = {
+            pt: {
+                sinais: {
+                    // Sinais GRAVES
+                    ameacas: 'ameaças diretas ou veladas',
+                    humilhacao: 'humilhação explícita',
+                    isolamento: 'tentativas de isolamento social',
+                    controle_severo: 'controle severo sobre suas ações',
+                    // Sinais MODERADOS (desgaste/invalidação)
+                    gaslighting: 'questionamento da sua percepção',
+                    coercao: 'pressão emocional',
+                    invalidacao: 'invalidação dos seus sentimentos',
+                    controle_leve: 'monitoramento de contatos'
+                },
+                orientacao: {
+                    baixo: 'Esses sinais isolados indicam desgaste emocional, não necessariamente abuso. Mantenha atenção e converse com alguém de confiança se o padrão persistir.',
+                    medio: 'Há um padrão de invalidação e desgaste emocional. Isso não é necessariamente abuso grave, mas merece atenção. Considere conversar com alguém de confiança ou profissional.',
+                    alto: 'Há sinais sérios de risco. Priorize sua segurança. NÃO confronte diretamente. Busque rede de apoio e ajuda profissional. CVV: 188 | Ligue 180 (violência contra mulher)'
+                }
+            },
+            en: {
+                sinais: {
+                    // GRAVE signals
+                    ameacas: 'direct or veiled threats',
+                    humilhacao: 'explicit humiliation',
+                    isolamento: 'attempts at social isolation',
+                    controle_severo: 'severe control over your actions',
+                    // MODERATE signals (emotional wear/invalidation)
+                    gaslighting: 'questioning your perception',
+                    coercao: 'emotional pressure',
+                    invalidacao: 'invalidation of your feelings',
+                    controle_leve: 'contact monitoring'
+                },
+                orientacao: {
+                    baixo: 'These isolated signs indicate emotional wear, not necessarily abuse. Stay alert and talk to someone you trust if the pattern persists.',
+                    medio: 'There is a pattern of invalidation and emotional wear. This is not necessarily severe abuse, but deserves attention. Consider talking to someone you trust or a professional.',
+                    alto: 'There are serious risk signs. Prioritize your safety. Do NOT confront directly. Seek support network and professional help.'
+                }
+            }
+        };
+
+        function setLang(lang) {
+            currentLang = lang;
+            const t = i18n[lang];
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (t[key]) el.placeholder = t[key];
+            });
+
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('inputLabel').textContent = t.inputLabel;
+            document.getElementById('conversation').placeholder = t.placeholder;
+            document.getElementById('analyzeBtn').textContent = t.analyzeBtn;
+            document.getElementById('resetBtn').textContent = t.resetBtn;
+            document.getElementById('protecaoTexto').textContent = t.protecao;
+            document.getElementById('fraseAncora').textContent = t.fraseAncora;
+            document.getElementById('mainDoubt').placeholder = t.doubtPlaceholder;
+
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                if (!btn.classList.contains('copied')) btn.textContent = t.copyBtn;
+            });
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+            });
+            localStorage.setItem('alpha-lang', lang);
+        }
+
+        function setInputMode(mode) {
+            inputMode = mode;
+            document.getElementById('textModeBtn').classList.toggle('active', mode === 'text');
+            document.getElementById('imageModeBtn').classList.toggle('active', mode === 'image');
+            document.getElementById('textInputWrapper').classList.toggle('hidden', mode !== 'text');
+            document.getElementById('uploadArea').classList.toggle('active', mode === 'image');
+        }
+
+        // Context option selection
+        document.querySelectorAll('.context-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const parent = this.closest('.context-options');
+                const contextType = parent.getAttribute('data-context');
+                parent.querySelectorAll('.context-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                contextValues[contextType] = this.getAttribute('data-value');
+            });
+        });
+
+        // Image upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const imageInput = document.getElementById('imageInput');
+        const uploadPreview = document.getElementById('uploadPreview');
+
+        uploadArea.addEventListener('click', (e) => {
+            if (e.target === uploadArea || e.target.classList.contains('upload-icon') ||
+                e.target.classList.contains('upload-text') || e.target.classList.contains('upload-hint')) {
+                imageInput.click();
+            }
+        });
+
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => { uploadArea.classList.remove('dragover'); });
+        uploadArea.addEventListener('drop', (e) => { e.preventDefault(); uploadArea.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+        imageInput.addEventListener('change', (e) => { handleFiles(e.target.files); });
+
+        function handleFiles(files) {
+            const newFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+            const toAdd = newFiles.slice(0, 10 - uploadedImages.length);
+            toAdd.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => { uploadedImages.push({ file, dataUrl: e.target.result }); renderPreview(); };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderPreview() {
+            uploadPreview.innerHTML = uploadedImages.map((img, i) => `
+                <div class="img-wrapper">
+                    <img src="${img.dataUrl}" alt="Print ${i + 1}">
+                    <button class="remove-img" onclick="removeImage(${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function removeImage(index) { uploadedImages.splice(index, 1); renderPreview(); }
+
+        function calculateScore(text, patternList) {
+            const textLower = text.toLowerCase();
+            let matches = 0;
+            for (const pattern of patternList) {
+                const regex = new RegExp(pattern.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                matches += (textLower.match(regex) || []).length;
+            }
+            return Math.min(100, Math.round(matches * 12));
+        }
+
+        function detectAbuseSignals(text, lang) {
+            const textLower = text.toLowerCase();
+            const detected = [];
+            const abusePatterns = patterns.abuso[lang];
+
+            let matchCount = 0;
+            for (const pattern of abusePatterns) {
+                if (textLower.includes(pattern.toLowerCase())) {
+                    matchCount++;
+                }
+            }
+
+            // SINAIS GRAVES: requerem acúmulo para RISCO ALTO
+            // - ameaças diretas, humilhação explícita, isolamento, controle severo
+            const sinaisGraves = {
+                ameacas: ['cuidado comigo', 'te bater', 'vou te machucar', 'vou te matar', "i will hurt", 'be careful with me', 'hit you', "i'll hurt", "i'll kill"],
+                humilhacao: ['você é burra', 'você é feia', 'você é nojenta', 'tenho vergonha de você', 'você me dá nojo', "you're stupid", "you're ugly", "you're disgusting", "i'm ashamed of you", 'you disgust me'],
+                isolamento: ['ninguém vai te querer', 'sem mim você não é nada', 'sua família não te ama', 'no one will want you', "without me you're nothing", "your family doesn't love you"],
+                controle_severo: ['não pode sair', 'me mostra o celular', 'você não pode ver', 'vou te trancar', "you can't go out", 'show me your phone', "you can't see", "i'll lock you"]
+            };
+
+            // SINAIS MODERADOS: desgaste emocional, invalidação (não justifica CVV/180)
+            const sinaisModerados = {
+                gaslighting: ['você é louca', 'tá maluca', 'você entendeu errado', 'isso não aconteceu', 'você tá inventando', "you're crazy", 'you misunderstood', "that didn't happen", "you're making it up"],
+                coercao: ['você me fez fazer', 'olha o que você me faz', 'por sua culpa', 'you made me do', 'look what you make me', "it's your fault"],
+                invalidacao: ['que drama', 'exagerada', 'neurótica', 'ciumenta', 'você viaja', 'não é pra tanto', 'so dramatic', 'exaggerating', 'neurotic', 'jealous', "it's not a big deal"],
+                controle_leve: ['com quem você estava', 'não fala com', 'who were you with', "don't talk to"]
+            };
+
+            let gravesDetectados = [];
+            let moderadosDetectados = [];
+
+            // Detecta sinais GRAVES
+            for (const [category, phrases] of Object.entries(sinaisGraves)) {
+                for (const phrase of phrases) {
+                    if (textLower.includes(phrase.toLowerCase())) {
+                        if (!gravesDetectados.includes(category)) gravesDetectados.push(category);
+                        if (!detected.includes(category)) detected.push(category);
+                    }
+                }
+            }
+
+            // Detecta sinais MODERADOS
+            for (const [category, phrases] of Object.entries(sinaisModerados)) {
+                for (const phrase of phrases) {
+                    if (textLower.includes(phrase.toLowerCase())) {
+                        if (!moderadosDetectados.includes(category)) moderadosDetectados.push(category);
+                        if (!detected.includes(category)) detected.push(category);
+                    }
+                }
+            }
+
+            return {
+                detected,
+                matchCount,
+                graves: gravesDetectados,
+                moderados: moderadosDetectados
+            };
+        }
+
+        function inferFromContext() {
+            let bonus = { evasao: 0, assimetria: 0, faltaClareza: 0, baixaReciprocidade: 0 };
+
+            // INICIATIVA - quem puxa mais a relação
+            if (contextValues.initiative === 'eu') {
+                bonus.assimetria += 35;
+                bonus.baixaReciprocidade += 25;
+            } else if (contextValues.initiative === 'equilibrado') {
+                bonus.assimetria -= 15;
+                bonus.baixaReciprocidade -= 15;
+            } else if (contextValues.initiative === 'outra') {
+                bonus.assimetria -= 10;
+            } else if (contextValues.initiative === 'dificil') {
+                bonus.faltaClareza += 10;
+            }
+
+            // FREQUÊNCIA
+            if (contextValues.frequency === 'nunca') {
+                bonus.evasao += 30;
+                bonus.baixaReciprocidade += 30;
+                bonus.faltaClareza += 20;
+            } else if (contextValues.frequency === 'raramente') {
+                bonus.baixaReciprocidade += 25;
+                bonus.evasao += 20;
+            } else if (contextValues.frequency === 'mensal') {
+                bonus.baixaReciprocidade += 15;
+                bonus.evasao += 10;
+            } else if (contextValues.frequency === 'semanal') {
+                bonus.evasao -= 10;
+                bonus.baixaReciprocidade -= 10;
+            } else if (contextValues.frequency === 'diaria') {
+                bonus.evasao -= 20;
+                bonus.baixaReciprocidade -= 20;
+            } else if (contextValues.frequency === 'varias') {
+                bonus.evasao -= 15;
+                bonus.baixaReciprocidade -= 15;
+            }
+
+            // TIPO DE VÍNCULO
+            if (contextValues.relationType === 'indefinido' || contextValues.relationType === 'outro') {
+                bonus.faltaClareza += 30;
+                bonus.evasao += 20;
+            }
+
+            // ESTADO EMOCIONAL
+            if (contextValues.emotional === 'confusa' || contextValues.emotional === 'ansiosa') {
+                bonus.faltaClareza += 10;
+            } else if (contextValues.emotional === 'cansada') {
+                bonus.assimetria += 10;
+            } else if (contextValues.emotional === 'tranquila') {
+                bonus.faltaClareza -= 10;
+            } else if (contextValues.emotional === 'indiferente') {
+                bonus.baixaReciprocidade += 5;
+            }
+
+            Object.keys(bonus).forEach(key => {
+                bonus[key] = Math.max(-30, bonus[key]);
+            });
+
+            return bonus;
+        }
+
+        // OVERRIDE CRÍTICO: Detecta sequência aprofundamento → desvio (Caso C)
+        function detectDesvioSequencia(text, lang) {
+            const textLower = text.toLowerCase();
+
+            // Padrões de tentativa de aprofundamento emocional
+            const aprofundamento = {
+                pt: [
+                    'quero conversar', 'preciso falar', 'o que você sente', 'o que a gente é',
+                    'onde isso vai', 'quero entender', 'preciso saber', 'tô confusa',
+                    'me sinto', 'isso me machuca', 'tô triste', 'não sei mais',
+                    'a gente precisa', 'quero falar sério', 'podemos conversar',
+                    'quero que você', 'preciso de você', 'sinto que', 'parece que você',
+                    'me preocupo', 'tenho medo de', 'não aguento mais', 'cansei de'
+                ],
+                en: [
+                    'want to talk', 'need to talk', 'what do you feel', 'what are we',
+                    'where is this going', 'want to understand', 'need to know', "i'm confused",
+                    'i feel', 'this hurts me', "i'm sad", "i don't know anymore",
+                    'we need to', 'want to talk seriously', 'can we talk',
+                    'i want you to', 'i need you', 'i feel like', 'it seems like you',
+                    "i'm worried", "i'm afraid of", "i can't take it anymore", "i'm tired of"
+                ]
+            };
+
+            // Padrões de desvio (piada, sexualização, mudança de assunto)
+            const desvio = {
+                pt: [
+                    'haha', 'kkk', 'rsrs', 'relaxa', 'calma', 'para', 'que isso',
+                    'que drama', 'exagerada', 'vem cá', 'vem aqui', 'saudade do seu',
+                    'quero te pegar', 'tô com tesão', 'manda foto', 'manda nude',
+                    'bora falar de', 'muda de assunto', 'esquece isso', 'deixa isso pra lá',
+                    'não é pra tanto', 'você viaja', 'deixa eu te', 'vem pro meu'
+                ],
+                en: [
+                    'haha', 'lol', 'lmao', 'relax', 'chill', 'stop', 'calm down',
+                    'so dramatic', 'exaggerating', 'come here', 'miss your',
+                    'want you', "i'm horny", 'send pic', 'send nudes',
+                    "let's talk about", 'change the subject', 'forget it', 'let it go',
+                    "it's not that bad", "you're tripping", 'let me'
+                ]
+            };
+
+            // Detecta se há padrões de aprofundamento E desvio no mesmo texto
+            let hasAprofundamento = false;
+            let hasDesvio = false;
+            let aprofundamentoIndex = -1;
+            let desvioIndex = -1;
+
+            for (const pattern of aprofundamento[lang]) {
+                const idx = textLower.indexOf(pattern.toLowerCase());
+                if (idx !== -1) {
+                    hasAprofundamento = true;
+                    if (aprofundamentoIndex === -1 || idx < aprofundamentoIndex) {
+                        aprofundamentoIndex = idx;
+                    }
+                }
+            }
+
+            for (const pattern of desvio[lang]) {
+                const idx = textLower.indexOf(pattern.toLowerCase());
+                if (idx !== -1) {
+                    hasDesvio = true;
+                    if (desvioIndex === -1 || idx > desvioIndex) {
+                        desvioIndex = idx;
+                    }
+                }
+            }
+
+            // OVERRIDE: Se há tentativa de aprofundamento E desvio,
+            // especialmente se desvio vem DEPOIS do aprofundamento
+            // ⚠️ IMPORTANTE: NÃO ativar para AMIZADE - risadas são normais entre amigos!
+            const vinculoAmizade = contextValues.relationType === 'amizade' || contextValues.relationType === 'familia';
+
+            if (vinculoAmizade) {
+                // Para amizade/família, não forçar padrão de desvio sexual/humor
+                return { isOverride: false, reason: 'vinculo_nao_romantico' };
+            }
+
+            if (hasAprofundamento && hasDesvio) {
+                // Se desvio aparece depois do aprofundamento = sequência crítica
+                if (desvioIndex > aprofundamentoIndex) {
+                    return { isOverride: true, reason: 'sequencia_aprofundamento_desvio' };
+                }
+                // Mesmo se não em sequência, a presença de ambos indica padrão
+                return { isOverride: true, reason: 'coexistencia_aprofundamento_desvio' };
+            }
+
+            return { isOverride: false, reason: null };
+        }
+
+        function renderConditionalResponses(padraoKey, lang) {
+            const respostas = respostasCondicionais[lang][padraoKey] || respostasCondicionais[lang].saudavel;
+            const container = document.getElementById('respostasContainer');
+            const t = i18n[lang];
+
+            container.innerHTML = respostas.map((r, i) => `
+                <div class="resposta-card">
+                    <div class="resposta-tipo">${r.tipo}</div>
+                    <p class="resposta-texto">${r.texto}</p>
+                    <button class="copy-btn" onclick="copyText('${r.texto.replace(/'/g, "\\'")}', this)">${t.copyBtn}</button>
+                </div>
+            `).join('');
+        }
+
+        function copyText(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const t = i18n[currentLang];
+                document.querySelectorAll('.copy-btn').forEach(b => { b.classList.remove('copied'); b.textContent = t.copyBtn; });
+                btn.classList.add('copied');
+                btn.textContent = t.copiedBtn;
+                setTimeout(() => { btn.classList.remove('copied'); btn.textContent = t.copyBtn; }, 2000);
+            });
+        }
+
+        function analyzeConversation() {
+            const text = document.getElementById('conversation').value.trim();
+            const doubt = document.getElementById('mainDoubt').value.trim();
+            const errorEl = document.getElementById('error');
+            const t = i18n[currentLang];
+
+            if (!doubt) { errorEl.textContent = t.errorNoDoubt; errorEl.classList.add('active'); return; }
+            if (inputMode === 'text' && !text) { errorEl.textContent = t.errorEmpty; errorEl.classList.add('active'); return; }
+            if (inputMode === 'text' && text.length < 50) { errorEl.textContent = t.errorShort; errorEl.classList.add('active'); return; }
+            if (inputMode === 'image' && uploadedImages.length === 0) { errorEl.textContent = t.errorEmpty; errorEl.classList.add('active'); return; }
+            errorEl.classList.remove('active');
+
+            const lang = currentLang;
+            const contextBonus = inferFromContext();
+
+            let evasaoScore = inputMode === 'text' ? calculateScore(text, patterns.evasao[lang]) : 0;
+            let assimetriaScore = inputMode === 'text' ? calculateScore(text, patterns.assimetria[lang]) : 0;
+            let faltaClarezaScore = inputMode === 'text' ? calculateScore(text, patterns.faltaClareza[lang]) : 0;
+            let baixaReciprocidadeScore = inputMode === 'text' ? calculateScore(text, patterns.baixaReciprocidade[lang]) : 0;
+            let desvioSexualHumorScore = inputMode === 'text' ? calculateScore(text, patterns.desvioSexualHumor[lang]) : 0;
+            let vulnerabilidadeSemAcaoScore = inputMode === 'text' ? calculateScore(text, patterns.vulnerabilidadeSemAcao[lang]) : 0;
+            let evasaoEleganteScore = inputMode === 'text' ? calculateScore(text, patterns.evasaoElegante[lang]) : 0;
+
+            evasaoScore = Math.min(100, evasaoScore + contextBonus.evasao);
+            assimetriaScore = Math.min(100, assimetriaScore + contextBonus.assimetria);
+            faltaClarezaScore = Math.min(100, faltaClarezaScore + contextBonus.faltaClareza);
+            baixaReciprocidadeScore = Math.min(100, baixaReciprocidadeScore + contextBonus.baixaReciprocidade);
+            // Evasão elegante adiciona ao score de evasão geral também
+            evasaoScore = Math.min(100, evasaoScore + Math.floor(evasaoEleganteScore * 0.5));
+
+            if (inputMode === 'image') {
+                const hasContext = Object.values(contextValues).some(v => v !== null);
+                if (hasContext) {
+                    evasaoScore = Math.max(evasaoScore, 25);
+                    if (contextValues.relationType === 'indefinido') faltaClarezaScore = Math.max(faltaClarezaScore, 50);
+                    if (contextValues.initiative === 'eu') assimetriaScore = Math.max(assimetriaScore, 50);
+                }
+            }
+
+            // Abuse screening
+            const abuseResult = inputMode === 'text' ? detectAbuseSignals(text, lang) : { detected: [], matchCount: 0 };
+            const triagemEl = document.getElementById('triagemRisco');
+
+            if (abuseResult.detected.length > 0) {
+                triagemEl.classList.add('active');
+
+                // NOVA LÓGICA DE THRESHOLD:
+                // - ALTO: apenas com MÚLTIPLOS sinais GRAVES (2+) ou ameaça direta
+                // - MÉDIO: sinais moderados ou 1 sinal grave (desgaste/invalidação)
+                // - BAIXO: poucos sinais detectados
+                // REGRA CRÍTICA: vínculo ≠ amoroso → NUNCA escalar para ALTO (evita falso positivo)
+                let nivel = 'baixo';
+                let nivelClass = 'nivel-baixo';
+
+                const numGraves = abuseResult.graves ? abuseResult.graves.length : 0;
+                const numModerados = abuseResult.moderados ? abuseResult.moderados.length : 0;
+                const temAmeaca = abuseResult.graves && abuseResult.graves.includes('ameacas');
+
+                // Verifica se é vínculo amoroso (único que pode escalar para ALTO)
+                const vinculoAmoroso = contextValues.relationType === 'amoroso' || contextValues.relationType === null;
+
+                // RISCO ALTO: só com acúmulo de sinais GRAVES E vínculo amoroso
+                // (ameaça direta + outro sinal grave, ou 3+ sinais graves diferentes)
+                if (vinculoAmoroso && temAmeaca && numGraves >= 2) {
+                    nivel = 'alto'; nivelClass = 'nivel-alto';
+                } else if (vinculoAmoroso && numGraves >= 3) {
+                    nivel = 'alto'; nivelClass = 'nivel-alto';
+                }
+                // RISCO MÉDIO: 1 sinal grave OU múltiplos sinais moderados (independe do vínculo)
+                else if (numGraves >= 1 || numModerados >= 2) {
+                    nivel = 'medio'; nivelClass = 'nivel-medio';
+                }
+                // RISCO BAIXO: sinais moderados isolados (desgaste, invalidação leve)
+
+                const nivelEl = document.getElementById('nivelRisco');
+                nivelEl.className = 'nivel ' + nivelClass;
+                nivelEl.textContent = t['nivel' + nivel.charAt(0).toUpperCase() + nivel.slice(1)];
+
+                const sinaisTexto = abuseResult.detected.map(s => triagemAbuso[lang].sinais[s]).filter(s => s).join(', ');
+                document.getElementById('sinaisDetectados').textContent = lang === 'pt'
+                    ? 'Há sinais de: ' + sinaisTexto
+                    : 'There are signs of: ' + sinaisTexto;
+                document.getElementById('orientacaoSegura').textContent = triagemAbuso[lang].orientacao[nivel];
+            } else {
+                triagemEl.classList.remove('active');
+            }
+
+            // Determine primary pattern - prioriza dúvida da usuária analisando contexto
+            let padraoKey = 'saudavel';
+            let maxScore = 25;
+
+            // Analisa dúvida da usuária para contexto adicional
+            const doubtLower = doubt.toLowerCase();
+            const doubtContext = {
+                evasao: /ele (gosta|quer|tem interesse)|tá enrolando|evitando|fugindo|não responde|some/i.test(doubtLower),
+                assimetria: /eu (que|sempre|puxo|corro)|só eu|eu (busco|inicio)|desigual/i.test(doubtLower),
+                clareza: /o que somos|definir|namoro|relacionamento|futuro|clareza|compromisso/i.test(doubtLower),
+                desvio: /sexo|piada|desvia|muda de assunto|não leva a sério/i.test(doubtLower),
+                vulnerabilidade: /promete|diz que ama|se abre|pede desculpa|não muda|palavras/i.test(doubtLower)
+            };
+
+            // Aplica bônus baseado na dúvida
+            if (doubtContext.evasao) evasaoScore = Math.min(100, evasaoScore + 15);
+            if (doubtContext.assimetria) assimetriaScore = Math.min(100, assimetriaScore + 15);
+            if (doubtContext.clareza) faltaClarezaScore = Math.min(100, faltaClarezaScore + 15);
+            if (doubtContext.desvio) desvioSexualHumorScore = Math.min(100, desvioSexualHumorScore + 15);
+            if (doubtContext.vulnerabilidade) vulnerabilidadeSemAcaoScore = Math.min(100, vulnerabilidadeSemAcaoScore + 15);
+
+            if (evasaoScore > maxScore) { padraoKey = 'evasaoAlta'; maxScore = evasaoScore; }
+            if (assimetriaScore > maxScore) { padraoKey = 'assimetriaAlta'; maxScore = assimetriaScore; }
+            if (faltaClarezaScore > maxScore) { padraoKey = 'faltaClarezaAlta'; maxScore = faltaClarezaScore; }
+            if (baixaReciprocidadeScore > maxScore) { padraoKey = 'baixaReciprocidadeAlta'; maxScore = baixaReciprocidadeScore; }
+            if (desvioSexualHumorScore > maxScore) { padraoKey = 'desvioSexualHumorAlto'; maxScore = desvioSexualHumorScore; }
+            if (vulnerabilidadeSemAcaoScore > maxScore) { padraoKey = 'vulnerabilidadeSemAcaoAlta'; maxScore = vulnerabilidadeSemAcaoScore; }
+            if (evasaoEleganteScore > maxScore) { padraoKey = 'evasaoEleganteAlta'; maxScore = evasaoEleganteScore; }
+
+            // Misto: múltiplos padrões significativos
+            const allScores = [evasaoScore, assimetriaScore, faltaClarezaScore, baixaReciprocidadeScore, desvioSexualHumorScore, vulnerabilidadeSemAcaoScore];
+            if (allScores.filter(s => s > 35).length >= 2) padraoKey = 'misto';
+
+            // ⚠️ LÓGICA POR TIPO DE VÍNCULO - Usa diagnósticos específicos
+            const tipoVinculo = contextValues.relationType;
+
+            // Detecta perguntas sobre amizade na dúvida
+            const perguntaAmizade = /amig[oa]|amizade|confia|verdadeir[oa]/i.test(doubtLower);
+
+            // ⚠️ IMPORTANTE: Se detectou sinais de abuso, NÃO usar padrões pacificadores
+            const temSinaisAbuso = abuseResult.detected.length > 0;
+
+            // AMIZADE/FAMÍLIA: Threshold mais alto (50) + padrões específicos
+            // MAS: se tem sinais de abuso, NÃO pacificar - usar diagnósticos normais
+            if ((tipoVinculo === 'amizade' || tipoVinculo === 'familia' || perguntaAmizade) && !temSinaisAbuso) {
+                const thresholdAlto = 50;
+                const prefixo = tipoVinculo === 'familia' ? 'familia' : 'amizade';
+
+                if (maxScore < thresholdAlto) {
+                    padraoKey = prefixo + 'Saudavel';
+                } else if (perguntaAmizade && maxScore < 60) {
+                    padraoKey = prefixo + 'Duvidosa';
+                } else if (assimetriaScore > thresholdAlto || baixaReciprocidadeScore > thresholdAlto) {
+                    padraoKey = prefixo + 'Desigual';
+                } else if (evasaoScore > thresholdAlto) {
+                    padraoKey = prefixo === 'familia' ? 'familiaDistante' : 'amizadeDistante';
+                } else if (tipoVinculo === 'familia' && maxScore >= 60) {
+                    padraoKey = 'familiaDificil';
+                } else {
+                    padraoKey = prefixo + 'Duvidosa';
+                }
+            }
+
+            // TRABALHO: Padrões profissionais (também não pacificar se tem sinais de abuso)
+            else if (tipoVinculo === 'trabalho' && !temSinaisAbuso) {
+                const thresholdAlto = 45;
+
+                if (maxScore < thresholdAlto) {
+                    padraoKey = 'trabalhoSaudavel';
+                } else if (assimetriaScore > thresholdAlto) {
+                    padraoKey = 'trabalhoDesigual';
+                } else if (maxScore >= 60) {
+                    padraoKey = 'trabalhoComplicado';
+                } else {
+                    padraoKey = 'trabalhoProfissional';
+                }
+            }
+
+            // ⚠️ OVERRIDE CRÍTICO - Caso C: Desvio sexual/humor como anestésico
+            // Se detectar sequência aprofundamento → desvio, FORÇA padrão dominante
+            // PRIORIDADE DE PADRÃO > SCORE (conforme instrução do Fred)
+            let casoCAtivado = false;
+            if (inputMode === 'text') {
+                const desvioOverride = detectDesvioSequencia(text, lang);
+                if (desvioOverride.isOverride) {
+                    // Override BINÁRIO: força desvioSexualHumorAlto independente de outros scores
+                    padraoKey = 'desvioSexualHumorAlto';
+                    casoCAtivado = true;
+                    // Log para debug
+                    console.log('⚠️ CASO C Override ativado:', desvioOverride.reason);
+                }
+            }
+
+            detectedPattern = padraoKey;
+
+            // Se Caso C ativado, garantir que risco NUNCA seja "saudavel" ou "baixo"
+            // Força exibição de triagem com nível mínimo MÉDIO
+            if (casoCAtivado && !triagemEl.classList.contains('active')) {
+                triagemEl.classList.add('active');
+                const nivelEl = document.getElementById('nivelRisco');
+                nivelEl.className = 'nivel nivel-medio';
+                nivelEl.textContent = t.nivelMedio;
+                document.getElementById('sinaisDetectados').textContent = lang === 'pt'
+                    ? 'Há sinais consistentes de: desvio emocional sistemático (sexualização/humor como anestésico)'
+                    : 'There are consistent signs of: systematic emotional deflection (sexualization/humor as numbing)';
+                document.getElementById('orientacaoSegura').textContent = lang === 'pt'
+                    ? 'Esse padrão indica evitação de profundidade emocional. Não é necessariamente abuso, mas impede construção de vínculo real.'
+                    : 'This pattern indicates avoidance of emotional depth. Not necessarily abuse, but prevents building real connection.';
+            }
+            document.getElementById('feedbackPattern').value = padraoKey;
+            document.getElementById('feedbackLang').value = lang;
+
+            const diag = diagnosticos[lang];
+            document.getElementById('diagnosticoCentral').textContent = diag.central[padraoKey];
+            document.getElementById('padraoRecorrente').textContent = diag.padrao[padraoKey];
+            document.getElementById('riscoReal').textContent = diag.risco[padraoKey];
+            document.getElementById('proximoMovimento').textContent = diag.movimento[padraoKey];
+
+            // Render conditional responses
+            renderConditionalResponses(padraoKey, lang);
+
+            // ✅ ESCONDER FRASES NEGATIVAS QUANDO RELAÇÃO É SAUDÁVEL
+            const frasesNegativas = document.querySelector('.protecao-frases');
+            const ehSaudavel = padraoKey === 'saudavel' || padraoKey.includes('Saudavel');
+            if (ehSaudavel) {
+                // Relação saudável: esconder frases negativas, mostrar frase positiva
+                if (frasesNegativas) frasesNegativas.style.display = 'none';
+                // Mostrar mensagem positiva alternativa
+                const fraseAncora = document.getElementById('fraseAncora');
+                const fraseApoio = document.querySelector('.protecao:not(.frase-ancora)');
+                if (fraseAncora) {
+                    fraseAncora.textContent = lang === 'pt'
+                        ? 'Relações saudáveis se constroem com reciprocidade e clareza. Continue cultivando isso.'
+                        : 'Healthy relationships are built with reciprocity and clarity. Keep cultivating this.';
+                    fraseAncora.parentElement.style.display = 'block';
+                }
+                if (fraseApoio) fraseApoio.style.display = 'none';
+            } else {
+                // Relação com problemas: mostrar frases de apoio
+                if (frasesNegativas) frasesNegativas.style.display = 'block';
+            }
+
+            document.getElementById('inputArea').style.display = 'none';
+            document.getElementById('results').classList.add('active');
+        }
+
+        function selectThumb(btn) {
+            document.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            document.getElementById('feedbackHelpful').value = btn.getAttribute('data-value');
+        }
+
+        // Feedback form submission - UX melhorada
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Validação mínima: só precisa de thumbs OU score
+            const helpful = document.getElementById('feedbackHelpful').value;
+            const accuracy = document.getElementById('feedbackAccuracy').value;
+
+            // Se não tem nem thumbs nem moveu o score, pede pelo menos um
+            if (!helpful && accuracy === '5') {
+                const t = i18n[currentLang];
+                const msg = currentLang === 'pt'
+                    ? 'Selecione 👍 ou 👎, ou mova a escala de precisão.'
+                    : 'Select 👍 or 👎, or move the accuracy scale.';
+                alert(msg);
+                return;
+            }
+
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('.feedback-submit');
+            const originalText = submitBtn.textContent;
+
+            // Feedback visual imediato
+            submitBtn.disabled = true;
+            submitBtn.textContent = currentLang === 'pt' ? 'Enviando...' : 'Sending...';
+
+            fetch('/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(formData).toString()
+            }).then(() => {
+                showFeedbackSuccess();
+            }).catch(() => {
+                // Mesmo com erro de rede, mostra sucesso (dados podem ter sido enviados)
+                // Em produção com Netlify Forms, geralmente funciona
+                showFeedbackSuccess();
+            });
+
+            function showFeedbackSuccess() {
+                document.getElementById('feedbackForm').style.display = 'none';
+                document.getElementById('feedbackSuccess').classList.add('active');
+
+                // Reset do formulário para próximo uso
+                document.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('selected'));
+                document.getElementById('feedbackHelpful').value = '';
+                document.getElementById('feedbackAccuracy').value = '5';
+                document.querySelectorAll('.feedback-textarea').forEach(ta => ta.value = '');
+                document.querySelector('.feedback-input[type="email"]').value = '';
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+
+        function resetAnalysis() {
+            document.getElementById('conversation').value = '';
+            document.getElementById('mainDoubt').value = '';
+            document.getElementById('inputArea').style.display = 'block';
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('error').classList.remove('active');
+            document.getElementById('triagemRisco').classList.remove('active');
+            document.getElementById('feedbackForm').style.display = 'block';
+            document.getElementById('feedbackSuccess').classList.remove('active');
+            document.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('feedbackHelpful').value = '';
+            document.getElementById('feedbackAccuracy').value = '5';
+            uploadedImages = [];
+            renderPreview();
+            contextValues = { relationType: null, initiative: null, frequency: null, emotional: null };
+            document.querySelectorAll('.context-option').forEach(o => o.classList.remove('selected'));
+        }
+
+        const savedLang = localStorage.getItem('alpha-lang') || (navigator.language.startsWith('pt') ? 'pt' : 'en');
+        setLang(savedLang);
+    </script>
+
+    <p class="footer-disclaimer" data-i18n="footerDisclaimer">Para fins de entretenimento. Não substitui acompanhamento profissional.</p>
+
+    <footer>
+        Made by <a href="https://lolalab.studio" target="_blank">LolaLab</a>
+    </footer>
+</body>
+</html>
