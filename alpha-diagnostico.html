@@ -991,6 +991,13 @@
         let contextValues = { objective: null, relationType: null, platform: null, initiative: null, frequency: null, emotional: null };
         let detectedPattern = '';
 
+        // Analysis state variables (global scope)
+        let analysisState = { step: 'initial', text: '', lowHistory: false };
+        let detectedParticipants = [];
+        let selectedParticipant = null;
+        let messageSide = null;
+        let clarificationAnswers = { q1: null, q2: null, q3: null };
+
         const i18n = {
             pt: {
                 subtitle: 'Diagnóstico emocional',
@@ -2057,8 +2064,10 @@
         }
 
         function analyzeConversationCore() {
+            console.log('analyzeConversationCore called');
             // Core analysis - validation done by startAnalysisFlow()
             const text = document.getElementById('conversation').value.trim();
+            console.log('Text length:', text.length);
             const lang = currentLang;
             const contextBonus = inferFromContext();
 
@@ -2382,13 +2391,15 @@
             renderPreview();
             contextValues = { objective: null, relationType: null, platform: null, initiative: null, frequency: null, emotional: null };
             document.querySelectorAll('.context-option').forEach(o => o.classList.remove('selected'));
+
+            // Reset modal states
+            clarificationAnswers = { q1: null, q2: null, q3: null };
+            analysisState = { step: 'initial', text: '', lowHistory: false };
+            selectedParticipant = null;
+            messageSide = null;
         }
 
         // ================== PARTICIPANT DETECTION ==================
-        let detectedParticipants = [];
-        let selectedParticipant = null;
-        let messageSide = null;
-        let clarificationAnswers = { q1: null, q2: null, q3: null };
 
         function detectParticipantsFromText(text) {
             // Detect patterns like "[date] Name:" or "Name:"
@@ -2501,22 +2512,27 @@
         }
 
         function submitClarifications() {
+            console.log('submitClarifications called', clarificationAnswers);
+
             // Check if all answered
             if (clarificationAnswers.q1 === null || clarificationAnswers.q2 === null || clarificationAnswers.q3 === null) {
+                console.log('Not all questions answered, returning');
                 return;
             }
-            document.getElementById('lowHistoryModal').classList.remove('active');
+
+            const modal = document.getElementById('lowHistoryModal');
+            if (modal) modal.classList.remove('active');
 
             // Apply bonuses based on clarification answers
             if (clarificationAnswers.q1) contextValues.initiative = 'eu'; // User initiates
             if (clarificationAnswers.q2) contextValues.frequency = 'raramente'; // Canceled plans = low meeting
             if (clarificationAnswers.q3) contextValues.emotional = 'cansada'; // Feels more invested
 
+            console.log('Calling continueAnalysis from submitClarifications');
             continueAnalysis();
         }
 
         // ================== ANALYSIS FLOW ==================
-        let analysisState = { step: 'initial', text: '', lowHistory: false };
 
         function startAnalysisFlow() {
             const text = document.getElementById('conversation').value.trim();
@@ -2579,6 +2595,8 @@
         }
 
         function continueAnalysis() {
+            console.log('continueAnalysis called', { step: analysisState.step, inputMode, lowHistory: analysisState.lowHistory });
+
             // If we came from participant modal and still need low history check
             if (analysisState.step === 'participant' && inputMode === 'text') {
                 const msgCount = countMessages(analysisState.text);
@@ -2591,22 +2609,33 @@
             }
 
             // Run the actual analysis
+            console.log('Calling runAnalysis');
             runAnalysis();
         }
 
         function runAnalysis() {
+            console.log('runAnalysis called');
             // Show loading state with progress animation
             showLoading();
         }
 
         function showLoading() {
+            console.log('showLoading called');
             const t = i18n[currentLang];
             const overlay = document.getElementById('loadingOverlay');
             const progress = document.getElementById('loadingProgress');
             const stepEl = document.getElementById('loadingStep');
 
+            if (!overlay || !progress || !stepEl) {
+                console.error('Loading elements not found:', { overlay, progress, stepEl });
+                // Fallback: run analysis directly without loading animation
+                analyzeConversationCore();
+                return;
+            }
+
             overlay.classList.add('active');
             progress.style.width = '0%';
+            console.log('Loading overlay activated');
 
             // Step 1: Identifying patterns (0-40%)
             stepEl.textContent = t.loadingStep || 'Identificando padrões';
