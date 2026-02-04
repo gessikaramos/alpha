@@ -554,6 +554,43 @@
         footer a { color: #737373; text-decoration: none; }
         footer a:hover { color: #fafafa; }
         .footer-logo { height: 16px; opacity: 0.4; }
+        .build-version {
+            display: block;
+            margin-top: 8px;
+            font-size: 10px;
+            color: #404040;
+            font-family: monospace;
+        }
+
+        /* Feedback error state */
+        .feedback-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            text-align: center;
+        }
+        .feedback-error p {
+            color: #ef4444;
+            margin: 0 0 12px 0;
+        }
+        .retry-btn {
+            background: transparent;
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .retry-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .feedback-submit.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
 
         /* Legal Section */
         .legal-section {
@@ -2329,7 +2366,8 @@
             if (inputAreaEl) inputAreaEl.style.display = 'none';
             if (resultsEl) resultsEl.classList.add('active');
 
-            console.log('✅ ANALYSIS COMPLETE - Results should be visible now');
+            console.info('[ALPHA] analysis_success', { pattern: padraoKey });
+            console.info('[ALPHA] report_rendered');
         }
 
         function selectThumb(btn) {
@@ -2338,9 +2376,10 @@
             document.getElementById('feedbackHelpful').value = btn.getAttribute('data-value');
         }
 
-        // Feedback form submission - UX melhorada
+        // Feedback form submission - UX com error handling real
         document.getElementById('feedbackForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            console.info('[ALPHA] feedback_submit');
 
             // Validação mínima: só precisa de thumbs OU score
             const helpful = document.getElementById('feedbackHelpful').value;
@@ -2348,7 +2387,6 @@
 
             // Se não tem nem thumbs nem moveu o score, pede pelo menos um
             if (!helpful && accuracy === '5') {
-                const t = i18n[currentLang];
                 const msg = currentLang === 'pt'
                     ? 'Selecione 👍 ou 👎, ou mova a escala de precisão.'
                     : 'Select 👍 or 👎, or move the accuracy scale.';
@@ -2359,21 +2397,33 @@
             const formData = new FormData(this);
             const submitBtn = this.querySelector('.feedback-submit');
             const originalText = submitBtn.textContent;
+            const payloadString = new URLSearchParams(formData).toString();
 
-            // Feedback visual imediato
+            // Loading state real
             submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
             submitBtn.textContent = currentLang === 'pt' ? 'Enviando...' : 'Sending...';
+
+            // Esconder erro anterior se existir
+            const errorDiv = document.getElementById('feedbackError');
+            if (errorDiv) errorDiv.style.display = 'none';
 
             fetch('/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams(formData).toString()
-            }).then(() => {
-                showFeedbackSuccess();
-            }).catch(() => {
-                // Mesmo com erro de rede, mostra sucesso (dados podem ter sido enviados)
-                // Em produção com Netlify Forms, geralmente funciona
-                showFeedbackSuccess();
+                body: payloadString
+            }).then(response => {
+                if (response.ok) {
+                    console.info('[ALPHA] feedback_success');
+                    showFeedbackSuccess();
+                } else {
+                    throw new Error('Response not ok: ' + response.status);
+                }
+            }).catch(err => {
+                console.error('[ALPHA] feedback_error', err);
+                // Salvar em localStorage para retry
+                saveFeedbackToQueue(payloadString);
+                showFeedbackError();
             });
 
             function showFeedbackSuccess() {
@@ -2381,15 +2431,99 @@
                 document.getElementById('feedbackSuccess').classList.add('active');
 
                 // Reset do formulário para próximo uso
+                resetFeedbackForm();
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                submitBtn.textContent = originalText;
+            }
+
+            function showFeedbackError() {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                submitBtn.textContent = originalText;
+
+                // Mostrar erro
+                let errorDiv = document.getElementById('feedbackError');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.id = 'feedbackError';
+                    errorDiv.className = 'feedback-error';
+                    errorDiv.innerHTML = `
+                        <p>${currentLang === 'pt' ? '❌ Falhou ao enviar. Verifique sua conexão.' : '❌ Failed to send. Check your connection.'}</p>
+                        <button type="button" onclick="retryFeedback()" class="retry-btn">
+                            ${currentLang === 'pt' ? 'Tentar novamente' : 'Try again'}
+                        </button>
+                    `;
+                    document.getElementById('feedbackForm').appendChild(errorDiv);
+                }
+                errorDiv.style.display = 'block';
+            }
+
+            function resetFeedbackForm() {
                 document.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('selected'));
                 document.getElementById('feedbackHelpful').value = '';
                 document.getElementById('feedbackAccuracy').value = '5';
                 document.querySelectorAll('.feedback-textarea').forEach(ta => ta.value = '');
-                document.querySelector('.feedback-input[type="email"]').value = '';
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
+                const emailInput = document.querySelector('.feedback-input[type="email"]');
+                if (emailInput) emailInput.value = '';
             }
         });
+
+        // Salvar feedback em localStorage quando falhar
+        function saveFeedbackToQueue(payload) {
+            try {
+                const queue = JSON.parse(localStorage.getItem('alpha_feedback_queue') || '[]');
+                queue.push({ payload, timestamp: Date.now() });
+                localStorage.setItem('alpha_feedback_queue', JSON.stringify(queue));
+                console.info('[ALPHA] feedback_queued_for_retry');
+            } catch (e) {
+                console.error('[ALPHA] localStorage error', e);
+            }
+        }
+
+        // Retry feedback da queue
+        function retryFeedback() {
+            console.info('[ALPHA] feedback_retry');
+            const queue = JSON.parse(localStorage.getItem('alpha_feedback_queue') || '[]');
+            if (queue.length === 0) {
+                // Submeter form normalmente
+                document.getElementById('feedbackForm').dispatchEvent(new Event('submit'));
+                return;
+            }
+
+            const item = queue[0];
+            const submitBtn = document.querySelector('.feedback-submit');
+            const originalText = submitBtn.textContent;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = currentLang === 'pt' ? 'Reenviando...' : 'Retrying...';
+
+            fetch('/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: item.payload
+            }).then(response => {
+                if (response.ok) {
+                    console.info('[ALPHA] feedback_retry_success');
+                    // Remover da queue
+                    queue.shift();
+                    localStorage.setItem('alpha_feedback_queue', JSON.stringify(queue));
+                    // Mostrar sucesso
+                    document.getElementById('feedbackForm').style.display = 'none';
+                    document.getElementById('feedbackSuccess').classList.add('active');
+                    const errorDiv = document.getElementById('feedbackError');
+                    if (errorDiv) errorDiv.style.display = 'none';
+                } else {
+                    throw new Error('Retry failed');
+                }
+            }).catch(err => {
+                console.error('[ALPHA] feedback_retry_error', err);
+                alert(currentLang === 'pt' ? 'Ainda sem conexão. Tente novamente mais tarde.' : 'Still offline. Try again later.');
+            }).finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            });
+        }
 
         function resetAnalysis() {
             document.getElementById('conversation').value = '';
@@ -2550,6 +2684,7 @@
         // ================== ANALYSIS FLOW ==================
 
         function startAnalysisFlow() {
+            console.info('[ALPHA] analyze_click');
             const text = document.getElementById('conversation').value.trim();
             const errorEl = document.getElementById('error');
             const t = i18n[currentLang];
@@ -2629,7 +2764,11 @@
         }
 
         function runAnalysis() {
-            console.log('runAnalysis called');
+            console.info('[ALPHA] analysis_start', {
+                textLength: analysisState.text?.length || 0,
+                context: contextValues,
+                lowHistory: analysisState.lowHistory
+            });
             // Show loading state with progress animation
             showLoading();
         }
@@ -2713,6 +2852,14 @@
 
     <footer>
         Made by <a href="https://lolalab.studio" target="_blank">Lola Lab</a>
+        <span class="build-version">v0.2.0</span>
     </footer>
+
+    <script>
+        // BUILD_VERSION for debugging
+        const BUILD_VERSION = 'v0.2.0';
+        const BUILD_DATE = '2026-02-04';
+        console.info('[ALPHA] BUILD_VERSION:', BUILD_VERSION, BUILD_DATE);
+    </script>
 </body>
 </html>
