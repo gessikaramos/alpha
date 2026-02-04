@@ -2283,11 +2283,26 @@
             document.getElementById('feedbackPattern').value = padraoKey;
             document.getElementById('feedbackLang').value = lang;
 
+            console.log('=== RENDER FINAL ===');
+            console.log('padraoKey:', padraoKey);
+            console.log('lang:', lang);
+
             const diag = diagnosticos[lang];
-            document.getElementById('diagnosticoCentral').textContent = diag.central[padraoKey];
-            document.getElementById('padraoRecorrente').textContent = diag.padrao[padraoKey];
-            document.getElementById('riscoReal').textContent = diag.risco[padraoKey];
-            document.getElementById('proximoMovimento').textContent = diag.movimento[padraoKey];
+            console.log('diag object:', diag ? 'exists' : 'MISSING!');
+            console.log('diag.central[padraoKey]:', diag?.central?.[padraoKey] || 'UNDEFINED!');
+
+            // Proteção: se padrão não existir, usar fallback
+            const centralText = diag?.central?.[padraoKey] || 'Análise concluída. Padrão detectado: ' + padraoKey;
+            const padraoText = diag?.padrao?.[padraoKey] || 'Verifique o contexto da conversa.';
+            const riscoText = diag?.risco?.[padraoKey] || 'Continue atenta aos sinais.';
+            const movimentoText = diag?.movimento?.[padraoKey] || 'Reflita sobre a dinâmica da relação.';
+
+            document.getElementById('diagnosticoCentral').textContent = centralText;
+            document.getElementById('padraoRecorrente').textContent = padraoText;
+            document.getElementById('riscoReal').textContent = riscoText;
+            document.getElementById('proximoMovimento').textContent = movimentoText;
+
+            console.log('Texts set successfully');
 
             // Render conditional responses
             renderConditionalResponses(padraoKey, lang);
@@ -2313,8 +2328,19 @@
                 if (frasesNegativas) frasesNegativas.style.display = 'block';
             }
 
-            document.getElementById('inputArea').style.display = 'none';
-            document.getElementById('results').classList.add('active');
+            console.log('=== FINAL RENDER ===');
+            console.log('Hiding inputArea, showing results...');
+
+            const inputAreaEl = document.getElementById('inputArea');
+            const resultsEl = document.getElementById('results');
+
+            console.log('inputArea element:', inputAreaEl ? 'found' : 'NOT FOUND!');
+            console.log('results element:', resultsEl ? 'found' : 'NOT FOUND!');
+
+            if (inputAreaEl) inputAreaEl.style.display = 'none';
+            if (resultsEl) resultsEl.classList.add('active');
+
+            console.log('✅ ANALYSIS COMPLETE - Results should be visible now');
         }
 
         function selectThumb(btn) {
