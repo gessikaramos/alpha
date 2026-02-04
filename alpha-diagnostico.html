@@ -1702,7 +1702,9 @@
         function setLang(lang) {
             currentLang = lang;
             const t = i18n[lang];
+            if (!t) return; // Proteção: idioma inválido
 
+            // Traduções via data-attributes (seguro - forEach ignora se vazio)
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (t[key]) el.textContent = t[key];
@@ -1713,30 +1715,50 @@
                 if (t[key]) el.placeholder = t[key];
             });
 
-            document.getElementById('subtitle').textContent = t.subtitle;
-            document.getElementById('inputLabel').textContent = t.inputLabel;
-            document.getElementById('conversation').placeholder = t.placeholder;
-            document.getElementById('analyzeBtn').textContent = t.analyzeBtn;
-            document.getElementById('resetBtn').textContent = t.resetBtn;
-            document.getElementById('protecaoTexto').textContent = t.protecao;
-            document.getElementById('fraseAncora').textContent = t.fraseAncora;
-            document.getElementById('mainDoubt').placeholder = t.doubtPlaceholder;
+            // Traduções por ID - TODAS com proteção defensiva
+            const subtitle = document.getElementById('subtitle');
+            if (subtitle && t.subtitle) subtitle.textContent = t.subtitle;
 
+            const inputLabel = document.getElementById('inputLabel');
+            if (inputLabel && t.inputLabel) inputLabel.textContent = t.inputLabel;
+
+            const conversation = document.getElementById('conversation');
+            if (conversation && t.placeholder) conversation.placeholder = t.placeholder;
+
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            if (analyzeBtn && t.analyzeBtn) analyzeBtn.textContent = t.analyzeBtn;
+
+            const resetBtn = document.getElementById('resetBtn');
+            if (resetBtn && t.resetBtn) resetBtn.textContent = t.resetBtn;
+
+            const protecaoTexto = document.getElementById('protecaoTexto');
+            if (protecaoTexto && t.protecao) protecaoTexto.textContent = t.protecao;
+
+            const fraseAncora = document.getElementById('fraseAncora');
+            if (fraseAncora && t.fraseAncora) fraseAncora.textContent = t.fraseAncora;
+
+            // Botões copy e lang (seguros - forEach ignora se vazio)
             document.querySelectorAll('.copy-btn').forEach(btn => {
-                if (!btn.classList.contains('copied')) btn.textContent = t.copyBtn;
+                if (!btn.classList.contains('copied') && t.copyBtn) btn.textContent = t.copyBtn;
             });
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
             });
+
             localStorage.setItem('alpha-lang', lang);
         }
 
         function setInputMode(mode) {
             inputMode = mode;
-            document.getElementById('textModeBtn').classList.toggle('active', mode === 'text');
-            document.getElementById('imageModeBtn').classList.toggle('active', mode === 'image');
-            document.getElementById('textInputWrapper').classList.toggle('hidden', mode !== 'text');
-            document.getElementById('uploadArea').classList.toggle('active', mode === 'image');
+            const textModeBtn = document.getElementById('textModeBtn');
+            const imageModeBtn = document.getElementById('imageModeBtn');
+            const textInputWrapper = document.getElementById('textInputWrapper');
+            const uploadArea = document.getElementById('uploadArea');
+
+            if (textModeBtn) textModeBtn.classList.toggle('active', mode === 'text');
+            if (imageModeBtn) imageModeBtn.classList.toggle('active', mode === 'image');
+            if (textInputWrapper) textInputWrapper.classList.toggle('hidden', mode !== 'text');
+            if (uploadArea) uploadArea.classList.toggle('active', mode === 'image');
         }
 
         // Context option selection
@@ -1747,30 +1769,6 @@
                 parent.querySelectorAll('.context-option').forEach(o => o.classList.remove('selected'));
                 this.classList.add('selected');
                 contextValues[contextType] = this.getAttribute('data-value');
-
-                // Show/hide doubt input when "outro" objective selected
-                if (contextType === 'objective') {
-                    const doubtInput = document.getElementById('mainDoubt');
-                    if (this.getAttribute('data-value') === 'outro') {
-                        doubtInput.classList.remove('hidden');
-                    } else {
-                        doubtInput.classList.add('hidden');
-                        doubtInput.value = '';
-                    }
-                }
-
-                // Show/hide dating subtype when "amoroso" selected
-                if (contextType === 'relationType') {
-                    const datingSubtype = document.getElementById('datingSubtype');
-                    if (this.getAttribute('data-value') === 'amoroso') {
-                        datingSubtype.classList.remove('hidden');
-                    } else {
-                        datingSubtype.classList.add('hidden');
-                        // Reset dating app selection
-                        contextValues.datingApp = null;
-                        datingSubtype.querySelectorAll('.context-option').forEach(o => o.classList.remove('selected'));
-                    }
-                }
             });
         });
 
@@ -2061,7 +2059,6 @@
         function analyzeConversationCore() {
             // Core analysis - validation done by startAnalysisFlow()
             const text = document.getElementById('conversation').value.trim();
-            const doubt = document.getElementById('mainDoubt').value.trim();
             const lang = currentLang;
             const contextBonus = inferFromContext();
 
@@ -2100,7 +2097,7 @@
                 // - ALTO: apenas com MÚLTIPLOS sinais GRAVES (2+) ou ameaça direta
                 // - MÉDIO: sinais moderados ou 1 sinal grave (desgaste/invalidação)
                 // - BAIXO: poucos sinais detectados
-                // REGRA CRÍTICA: vínculo ≠ amoroso → NUNCA escalar para ALTO (evita falso positivo)
+                // REGRA: MVP é 100% romântico, então todos os vínculos podem escalar para ALTO
                 let nivel = 'baixo';
                 let nivelClass = 'nivel-baixo';
 
@@ -2108,10 +2105,10 @@
                 const numModerados = abuseResult.moderados ? abuseResult.moderados.length : 0;
                 const temAmeaca = abuseResult.graves && abuseResult.graves.includes('ameacas');
 
-                // Verifica se é vínculo amoroso (único que pode escalar para ALTO)
-                const vinculoAmoroso = contextValues.relationType === 'amoroso' || contextValues.relationType === null;
+                // MVP é 100% romântico (ficante, dates, indefinido, namoro)
+                const vinculoAmoroso = true;
 
-                // RISCO ALTO: só com acúmulo de sinais GRAVES E vínculo amoroso
+                // RISCO ALTO: só com acúmulo de sinais GRAVES (MVP é 100% romântico)
                 // (ameaça direta + outro sinal grave, ou 3+ sinais graves diferentes)
                 if (vinculoAmoroso && temAmeaca && numGraves >= 2) {
                     nivel = 'alto'; nivelClass = 'nivel-alto';
@@ -2174,8 +2171,8 @@
                 }
             }
 
-            // ⚠️ DATING APP HEURISTICS: se amoroso + dating app + nunca se viram
-            const isDatingApp = contextValues.relationType === 'amoroso' && contextValues.datingApp === 'dating';
+            // ⚠️ DATING APP HEURISTICS: se plataforma é dating app + nunca se viram
+            const isDatingApp = contextValues.platform === 'bumble' || contextValues.platform === 'tinder';
             const nuncaSeViram = contextValues.frequency === 'nunca';
             if (isDatingApp && nuncaSeViram) {
                 // Reduz peso de baixa reciprocidade (normal em dating apps)
@@ -2372,7 +2369,6 @@
 
         function resetAnalysis() {
             document.getElementById('conversation').value = '';
-            document.getElementById('mainDoubt').value = '';
             document.getElementById('inputArea').style.display = 'block';
             document.getElementById('results').classList.remove('active');
             document.getElementById('error').classList.remove('active');
@@ -2384,11 +2380,8 @@
             document.getElementById('feedbackAccuracy').value = '5';
             uploadedImages = [];
             renderPreview();
-            contextValues = { objective: null, relationType: null, datingApp: null, initiative: null, frequency: null, emotional: null };
+            contextValues = { objective: null, relationType: null, platform: null, initiative: null, frequency: null, emotional: null };
             document.querySelectorAll('.context-option').forEach(o => o.classList.remove('selected'));
-            document.getElementById('mainDoubt').classList.add('hidden');
-            document.getElementById('mainDoubt').value = '';
-            document.getElementById('datingSubtype').classList.add('hidden');
         }
 
         // ================== PARTICIPANT DETECTION ==================
@@ -2537,13 +2530,6 @@
                 return;
             }
 
-            const doubt = document.getElementById('mainDoubt').value.trim();
-            if (contextValues.objective === 'outro' && !doubt) {
-                errorEl.textContent = currentLang === 'pt' ? 'Especifique seu objetivo.' : 'Specify your objective.';
-                errorEl.classList.add('active');
-                return;
-            }
-
             if (inputMode === 'text' && !text) {
                 errorEl.textContent = t.errorEmpty;
                 errorEl.classList.add('active');
@@ -2659,8 +2645,11 @@
             animate();
         }
 
-        const savedLang = localStorage.getItem('alpha-lang') || (navigator.language.startsWith('pt') ? 'pt' : 'en');
-        setLang(savedLang);
+        // Inicialização segura após DOM completo
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('alpha-lang') || (navigator.language.startsWith('pt') ? 'pt' : 'en');
+            setLang(savedLang);
+        });
     </script>
 
     <div class="legal-section">
