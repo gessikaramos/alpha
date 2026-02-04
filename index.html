@@ -299,7 +299,7 @@
     </div>
 
     <div class="container">
-        <p class="brand">LOLALAB</p>
+        <p class="brand">LOLA LAB</p>
 
         <h1>Alpha</h1>
 
@@ -327,7 +327,7 @@
         </p>
 
         <footer>
-            Made by <a href="https://lolalab.studio" target="_blank">LolaLab</a>
+            Made by <a href="https://lolalab.studio" target="_blank">Lola Lab</a>
         </footer>
     </div>
 
@@ -402,7 +402,9 @@
         }
 
         function validateCode() {
-            const code = document.getElementById('accessCode').value.toLowerCase().trim();
+            const rawCode = document.getElementById('accessCode').value;
+            // Normaliza: lowercase, remove espaços, aceita variações
+            const code = rawCode.toLowerCase().replace(/\s+/g, '').trim();
             const validCodes = ['lolalab', 'lola', 'alpha'];
 
             if (validCodes.includes(code)) {

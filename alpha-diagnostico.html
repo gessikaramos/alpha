@@ -242,6 +242,9 @@
         textarea::placeholder { color: #525252; }
         .text-input-wrapper { display: block; }
         .text-input-wrapper.hidden { display: none; }
+        .hidden { display: none !important; }
+        .doubt-input { margin-top: 12px; }
+        .dating-subtype { margin-top: -8px; }
 
         .analyze-btn {
             width: 100%;
@@ -353,6 +356,24 @@
             font-size: 12px;
             color: #737373;
             font-style: italic;
+        }
+        .triagem-risco .recursos-apoio {
+            background: rgba(127, 29, 29, 0.3);
+            border: 1px solid #991b1b;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 12px 0;
+        }
+        .triagem-risco .recursos-titulo {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fca5a5;
+            margin-bottom: 8px;
+        }
+        .triagem-risco .recurso-item {
+            font-size: 13px;
+            color: #e5e5e5;
+            margin: 4px 0;
         }
 
         /* Response Cards - Conditional */
@@ -529,16 +550,163 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        footer { text-align: center; padding: 48px 0 24px; }
-        .footer-disclaimer {
+        footer { text-align: center; padding: 24px 0; font-size: 12px; color: #525252; }
+        footer a { color: #737373; text-decoration: none; }
+        footer a:hover { color: #fafafa; }
+        .footer-logo { height: 16px; opacity: 0.4; }
+
+        /* Legal Section */
+        .legal-section {
             text-align: center;
+            max-width: 500px;
+            margin: 48px auto 0;
+            padding: 24px;
+            border-top: 1px solid #262626;
+        }
+        .legal-disclaimer, .legal-responsibility, .legal-privacy {
+            font-size: 11px;
+            color: #525252;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+        .legal-contact {
             font-size: 11px;
             color: #404040;
-            max-width: 400px;
-            margin: 32px auto 0;
-            line-height: 1.4;
+            margin-top: 16px;
         }
-        .footer-logo { height: 16px; opacity: 0.4; }
+        .legal-contact a { color: #525252; text-decoration: none; }
+        .legal-contact a:hover { color: #737373; }
+
+        /* Loading State */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10, 10, 10, 0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .loading-overlay.active { display: flex; }
+        .loading-text {
+            font-size: 16px;
+            color: #a3a3a3;
+            margin-bottom: 24px;
+        }
+        .loading-bar {
+            width: 200px;
+            height: 4px;
+            background: #262626;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .loading-progress {
+            height: 100%;
+            background: #fafafa;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .loading-step {
+            font-size: 12px;
+            color: #525252;
+            margin-top: 12px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-wrapper { position: relative; width: 100%; max-width: 400px; }
+        .modal {
+            background: #171717;
+            border: 1px solid #262626;
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+        }
+        .modal h2 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+        .modal p { font-size: 14px; color: #737373; margin-bottom: 24px; }
+        .modal-btn {
+            width: 100%;
+            background: #fafafa;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 16px;
+        }
+        .modal-btn:hover { background: #e5e5e5; }
+        .modal-btn:disabled { background: #404040; color: #737373; cursor: not-allowed; }
+
+        /* Participant Options */
+        .participant-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+        .participant-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0a0a0a;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .participant-option:hover { border-color: #404040; }
+        .participant-option.selected { border-color: #fafafa; background: #1a1a1a; }
+        .participant-option input { display: none; }
+        .participant-option span { font-size: 14px; }
+
+        /* Side Options */
+        .side-options { display: flex; gap: 12px; margin-bottom: 8px; }
+        .side-option {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #0a0a0a;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .side-option:hover { border-color: #404040; }
+        .side-option:has(input:checked) { border-color: #fafafa; background: #1a1a1a; }
+        .side-option input { display: none; }
+        .side-option span { font-size: 14px; }
+
+        /* Clarification Questions */
+        .clarification-questions { display: flex; flex-direction: column; gap: 16px; margin-bottom: 8px; text-align: left; }
+        .clarification-q { font-size: 14px; color: #a3a3a3; margin-bottom: 8px; }
+        .clarification-opts { display: flex; gap: 12px; }
+        .clarification-opt {
+            flex: 1;
+            background: #0a0a0a;
+            border: 1px solid #262626;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 13px;
+            color: #a3a3a3;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .clarification-opt:hover { border-color: #404040; }
+        .clarification-opt.selected { border-color: #fafafa; color: #fafafa; background: #1a1a1a; }
     </style>
 </head>
 <body>
@@ -549,7 +717,7 @@
 
     <div class="container">
         <header>
-            <p class="brand">LolaLab</p>
+            <p class="brand">LOLA LAB</p>
             <h1 class="logo">Alpha</h1>
             <p class="subtitle" id="subtitle">Diagnóstico emocional</p>
         </header>
@@ -591,18 +759,33 @@
                     <h4 data-i18n="contextTitle">Contexto rápido</h4>
 
                     <div class="context-field">
-                        <label data-i18n="doubtLabel">Sua dúvida em 1 frase *</label>
-                        <input type="text" id="mainDoubt" placeholder="" data-i18n-placeholder="doubtPlaceholder">
+                        <label data-i18n="objectiveLabel">Objetivo da análise *</label>
+                        <div class="context-options" data-context="objective">
+                            <span class="context-option" data-value="interesse" data-i18n="objInteresse">Saber se há interesse</span>
+                            <span class="context-option" data-value="reciprocidade" data-i18n="objReciprocidade">Avaliar reciprocidade</span>
+                            <span class="context-option" data-value="evasao" data-i18n="objEvasao">Identificar evasão</span>
+                            <span class="context-option" data-value="insistir" data-i18n="objInsistir">Decidir: insistir ou recuar</span>
+                            <span class="context-option" data-value="redflags" data-i18n="objRedflags">Detectar red flags</span>
+                        </div>
                     </div>
 
                     <div class="context-field">
                         <label data-i18n="relationLabel">Tipo de vínculo</label>
                         <div class="context-options" data-context="relationType">
-                            <span class="context-option" data-value="amoroso" data-i18n="relationAmoroso">Amoroso</span>
-                            <span class="context-option" data-value="amizade" data-i18n="relationAmizade">Amizade</span>
-                            <span class="context-option" data-value="familia" data-i18n="relationFamilia">Família</span>
-                            <span class="context-option" data-value="trabalho" data-i18n="relationTrabalho">Trabalho</span>
-                            <span class="context-option" data-value="outro" data-i18n="relationOutro">Outro</span>
+                            <span class="context-option" data-value="ficante" data-i18n="relationFicante">Ficante</span>
+                            <span class="context-option" data-value="dates" data-i18n="relationDates">Dates / conhecendo</span>
+                            <span class="context-option" data-value="indefinido" data-i18n="relationIndefinido">Relacionamento indefinido</span>
+                            <span class="context-option" data-value="namoro" data-i18n="relationNamoro">Namoro / relacionamento</span>
+                        </div>
+                    </div>
+
+                    <div class="context-field">
+                        <label data-i18n="platformLabel">Plataforma <span style="color:#737373">(opcional)</span></label>
+                        <div class="context-options" data-context="platform">
+                            <span class="context-option" data-value="whatsapp" data-i18n="platformWhatsapp">WhatsApp</span>
+                            <span class="context-option" data-value="instagram" data-i18n="platformInstagram">Instagram DM</span>
+                            <span class="context-option" data-value="bumble" data-i18n="platformBumble">Bumble</span>
+                            <span class="context-option" data-value="tinder" data-i18n="platformTinder">Tinder</span>
                         </div>
                     </div>
 
@@ -641,17 +824,22 @@
                 </div>
 
                 <div id="error" class="error-msg"></div>
-                <button class="analyze-btn" id="analyzeBtn" onclick="analyzeConversation()">Analisar</button>
+                <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysisFlow()">Analisar</button>
             </div>
 
             <div id="results" class="results">
                 <!-- Abuse/Risk Screening - Only shows if detected -->
                 <div class="result-block triagem-risco" id="triagemRisco">
-                    <h3><span class="emoji">🧯</span> <span data-i18n="screeningTitle">Sinais de risco/abuso (triagem)</span></h3>
+                    <h3><span class="emoji">🧯</span> <span data-i18n="screeningTitle">Sinais na conversa (triagem)</span></h3>
                     <div class="nivel" id="nivelRisco"></div>
                     <p class="sinais" id="sinaisDetectados"></p>
                     <div class="orientacao" id="orientacaoSegura"></div>
-                    <p class="disclaimer" data-i18n="screeningDisclaimer">Alpha não substitui apoio profissional. Se houver risco, priorize segurança e apoio.</p>
+                    <div class="recursos-apoio" id="recursosApoio">
+                        <p class="recursos-titulo" data-i18n="supportTitle">Recursos de apoio:</p>
+                        <p class="recurso-item">📞 <strong>CVV:</strong> 188 (24h, gratuito)</p>
+                        <p class="recurso-item">📞 <strong>Ligue 180:</strong> Central de Atendimento à Mulher</p>
+                    </div>
+                    <p class="disclaimer" data-i18n="screeningDisclaimer">ALPHA não substitui apoio profissional. Se houver risco, priorize sua segurança.</p>
                 </div>
 
                 <!-- Main Output -->
@@ -742,11 +930,65 @@
         </footer>
     </div>
 
+    <!-- Modal: Quem é você na conversa? -->
+    <div class="modal-overlay" id="participantModal">
+        <div class="modal-wrapper">
+            <div class="modal">
+                <h2 data-i18n="participantTitle">Quem é você na conversa?</h2>
+                <p data-i18n="participantDesc">Detectamos nomes na conversa. Selecione qual é você:</p>
+                <div id="participantOptions" class="participant-options"></div>
+                <button class="modal-btn" onclick="confirmParticipant()" data-i18n="participantConfirm">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Lado das mensagens (prints) -->
+    <div class="modal-overlay" id="sideModal">
+        <div class="modal-wrapper">
+            <div class="modal">
+                <h2 data-i18n="sideTitle">Suas mensagens estão em qual lado?</h2>
+                <p data-i18n="sideDesc">Nos prints, onde aparecem suas mensagens?</p>
+                <div class="side-options">
+                    <label class="side-option">
+                        <input type="radio" name="messageSide" value="right">
+                        <span data-i18n="sideRight">➡️ Direita</span>
+                    </label>
+                    <label class="side-option">
+                        <input type="radio" name="messageSide" value="left">
+                        <span data-i18n="sideLeft">⬅️ Esquerda</span>
+                    </label>
+                </div>
+                <button class="modal-btn" onclick="confirmSide()" data-i18n="sideConfirm">Continuar análise</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Pouco histórico -->
+    <div class="modal-overlay" id="lowHistoryModal">
+        <div class="modal-wrapper">
+            <div class="modal">
+                <h2 data-i18n="lowHistoryTitle">Pouco histórico detectado</h2>
+                <p data-i18n="lowHistoryDesc">A conversa tem poucas mensagens. Responda para melhorar a análise:</p>
+                <div class="clarification-questions" id="clarificationQuestions"></div>
+                <button class="modal-btn" onclick="submitClarifications()" data-i18n="lowHistorySubmit">Ver análise</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <p class="loading-text" data-i18n="loadingText">Analisando conversa...</p>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loadingProgress"></div>
+        </div>
+        <p class="loading-step" id="loadingStep" data-i18n="loadingStep">Identificando padrões</p>
+    </div>
+
     <script>
         let currentLang = 'pt';
         let inputMode = 'text';
         let uploadedImages = [];
-        let contextValues = { relationType: null, initiative: null, frequency: null, emotional: null };
+        let contextValues = { objective: null, relationType: null, platform: null, initiative: null, frequency: null, emotional: null };
         let detectedPattern = '';
 
         const i18n = {
@@ -762,14 +1004,22 @@
                 uploadText: 'Clique ou arraste até 10 prints',
                 uploadHint: 'Imagens não são armazenadas após análise.',
                 contextTitle: 'Contexto rápido',
-                doubtLabel: 'Sua dúvida em 1 frase *',
-                doubtPlaceholder: 'Ex: Ele gosta de mim ou só está enrolando?',
+                objectiveLabel: 'Objetivo da análise *',
+                objInteresse: 'Saber se há interesse',
+                objReciprocidade: 'Avaliar reciprocidade',
+                objEvasao: 'Identificar evasão',
+                objInsistir: 'Decidir: insistir ou recuar',
+                objRedflags: 'Detectar red flags',
                 relationLabel: 'Tipo de vínculo',
-                relationAmoroso: 'Amoroso',
-                relationAmizade: 'Amizade',
-                relationFamilia: 'Família',
-                relationTrabalho: 'Trabalho',
-                relationOutro: 'Outro',
+                relationFicante: 'Ficante',
+                relationDates: 'Dates / conhecendo',
+                relationIndefinido: 'Relacionamento indefinido',
+                relationNamoro: 'Namoro / relacionamento',
+                platformLabel: 'Plataforma',
+                platformWhatsapp: 'WhatsApp',
+                platformInstagram: 'Instagram DM',
+                platformBumble: 'Bumble',
+                platformTinder: 'Tinder',
                 initiativeLabel: 'Quem puxa mais a relação',
                 initiativeMe: 'Eu',
                 initiativeOther: 'Outra pessoa',
@@ -791,7 +1041,7 @@
                 analyzeBtn: 'Analisar',
                 errorEmpty: 'Cole a conversa ou envie prints para começar.',
                 errorShort: 'Cole uma conversa mais completa ou envie mais prints.',
-                errorNoDoubt: 'Escreva sua dúvida principal em 1 frase.',
+                errorNoDoubt: 'Selecione o objetivo da análise.',
                 diagTitle: 'Diagnóstico Central',
                 patternTitle: 'Padrão Recorrente',
                 riskTitle: 'Risco Real',
@@ -802,7 +1052,7 @@
                 resetBtn: 'Analisar outra conversa',
                 protecao: 'Você não está errada por querer clareza. Quem quer estar, encontra um jeito de ser claro.',
                 fraseAncora: 'O problema não é falta de sinais. É excesso de sinais que nunca viram ação.',
-                screeningTitle: 'Sinais de risco/abuso (triagem)',
+                screeningTitle: 'Sinais na conversa (triagem)',
                 screeningDisclaimer: 'Alpha não substitui apoio profissional. Se houver risco, priorize segurança e apoio.',
                 nivelBaixo: 'Baixo',
                 nivelMedio: 'Médio',
@@ -815,7 +1065,35 @@
                 feedbackEmail: 'E-mail (opcional)',
                 feedbackSubmit: 'Enviar feedback',
                 feedbackThanks: '✓ Obrigada. Seu feedback ajuda a melhorar o Alpha.',
-                footerDisclaimer: 'Para fins de entretenimento. Não substitui acompanhamento profissional.'
+                footerDisclaimer: 'Para fins de entretenimento. Não substitui acompanhamento profissional.',
+                // Modals
+                participantTitle: 'Quem é você na conversa?',
+                participantDesc: 'Detectamos nomes na conversa. Selecione qual é você:',
+                participantConfirm: 'Confirmar',
+                participantOther: 'Outro (não listado)',
+                sideTitle: 'Suas mensagens estão em qual lado?',
+                sideDesc: 'Nos prints, onde aparecem suas mensagens?',
+                sideRight: '➡️ Direita',
+                sideLeft: '⬅️ Esquerda',
+                sideConfirm: 'Continuar análise',
+                lowHistoryTitle: 'Leitura inicial (baixa confiança)',
+                lowHistoryDesc: 'A conversa tem poucas mensagens. Responda para melhorar a análise:',
+                lowHistorySubmit: 'Ver análise',
+                clarQ1: 'Você costuma iniciar a maioria das conversas?',
+                clarQ2: 'A pessoa já desmarcou/adiou planos mais de uma vez?',
+                clarQ3: 'Você sente que está mais investida do que a outra pessoa?',
+                clarYes: 'Sim',
+                clarNo: 'Não',
+                // Loading
+                loadingText: 'Analisando conversa...',
+                loadingStep: 'Identificando padrões',
+                loadingStep2: 'Calculando scores',
+                loadingStep3: 'Gerando diagnóstico',
+                // Legal
+                legalDisclaimer: 'Este relatório é uma análise estatística de padrões de comunicação e não constitui aconselhamento psicológico ou médico.',
+                legalResponsibility: 'As decisões tomadas a partir deste relatório são de responsabilidade exclusiva da usuária.',
+                legalPrivacy: 'Seus dados são processados localmente e não são armazenados em nossos servidores.',
+                supportTitle: 'Recursos de apoio:'
             },
             en: {
                 subtitle: 'Emotional diagnosis',
@@ -829,14 +1107,22 @@
                 uploadText: 'Click or drag up to 10 screenshots',
                 uploadHint: 'Images aren\'t stored after analysis.',
                 contextTitle: 'Quick context',
-                doubtLabel: 'Your doubt in 1 sentence *',
-                doubtPlaceholder: 'Ex: Does he like me or just stringing me along?',
+                objectiveLabel: 'Analysis objective *',
+                objInteresse: 'Check if there is interest',
+                objReciprocidade: 'Evaluate reciprocity',
+                objEvasao: 'Identify avoidance',
+                objInsistir: 'Decide: push or pull back',
+                objRedflags: 'Detect red flags',
                 relationLabel: 'Type of bond',
-                relationAmoroso: 'Romantic',
-                relationAmizade: 'Friendship',
-                relationFamilia: 'Family',
-                relationTrabalho: 'Work',
-                relationOutro: 'Other',
+                relationFicante: 'Casual / hookup',
+                relationDates: 'Dating / getting to know',
+                relationIndefinido: 'Undefined relationship',
+                relationNamoro: 'Committed relationship',
+                platformLabel: 'Platform',
+                platformWhatsapp: 'WhatsApp',
+                platformInstagram: 'Instagram DM',
+                platformBumble: 'Bumble',
+                platformTinder: 'Tinder',
                 initiativeLabel: 'Who drives the relationship more',
                 initiativeMe: 'Me',
                 initiativeOther: 'Other person',
@@ -858,7 +1144,7 @@
                 analyzeBtn: 'Analyze',
                 errorEmpty: 'Paste the conversation or upload screenshots to start.',
                 errorShort: 'Paste a more complete conversation or upload more screenshots.',
-                errorNoDoubt: 'Write your main question in 1 sentence.',
+                errorNoDoubt: 'Select the analysis objective.',
                 diagTitle: 'Central Diagnosis',
                 patternTitle: 'Recurring Pattern',
                 riskTitle: 'Real Risk',
@@ -869,7 +1155,7 @@
                 resetBtn: 'Analyze another conversation',
                 protecao: 'You\'re not wrong for wanting clarity. Those who want to be present find a way to be clear.',
                 fraseAncora: 'The issue isn\'t lack of signals. It\'s signals that never turn into action.',
-                screeningTitle: 'Risk/abuse signs (screening)',
+                screeningTitle: 'Conversation signs (screening)',
                 screeningDisclaimer: 'Alpha does not replace professional support. If there\'s risk, prioritize safety and support.',
                 nivelBaixo: 'Low',
                 nivelMedio: 'Medium',
@@ -882,7 +1168,35 @@
                 feedbackEmail: 'Email (optional)',
                 feedbackSubmit: 'Send feedback',
                 feedbackThanks: '✓ Thank you. Your feedback helps improve Alpha.',
-                footerDisclaimer: 'For entertainment purposes. Does not replace professional guidance.'
+                footerDisclaimer: 'For entertainment purposes. Does not replace professional guidance.',
+                // Modals
+                participantTitle: 'Who are you in the conversation?',
+                participantDesc: 'We detected names in the conversation. Select which one is you:',
+                participantConfirm: 'Confirm',
+                participantOther: 'Other (not listed)',
+                sideTitle: 'Which side are your messages on?',
+                sideDesc: 'In the screenshots, where do your messages appear?',
+                sideRight: '➡️ Right',
+                sideLeft: '⬅️ Left',
+                sideConfirm: 'Continue analysis',
+                lowHistoryTitle: 'Initial reading (low confidence)',
+                lowHistoryDesc: 'The conversation has few messages. Answer to improve the analysis:',
+                lowHistorySubmit: 'See analysis',
+                clarQ1: 'Do you usually start most conversations?',
+                clarQ2: 'Has the person canceled/postponed plans more than once?',
+                clarQ3: 'Do you feel more invested than the other person?',
+                clarYes: 'Yes',
+                clarNo: 'No',
+                // Loading
+                loadingText: 'Analyzing conversation...',
+                loadingStep: 'Identifying patterns',
+                loadingStep2: 'Calculating scores',
+                loadingStep3: 'Generating diagnosis',
+                // Legal
+                legalDisclaimer: 'This report is a statistical analysis of communication patterns and does not constitute psychological or medical advice.',
+                legalResponsibility: 'Decisions made based on this report are the sole responsibility of the user.',
+                legalPrivacy: 'Your data is processed locally and is not stored on our servers.',
+                supportTitle: 'Support resources:'
             }
         };
 
@@ -1433,6 +1747,30 @@
                 parent.querySelectorAll('.context-option').forEach(o => o.classList.remove('selected'));
                 this.classList.add('selected');
                 contextValues[contextType] = this.getAttribute('data-value');
+
+                // Show/hide doubt input when "outro" objective selected
+                if (contextType === 'objective') {
+                    const doubtInput = document.getElementById('mainDoubt');
+                    if (this.getAttribute('data-value') === 'outro') {
+                        doubtInput.classList.remove('hidden');
+                    } else {
+                        doubtInput.classList.add('hidden');
+                        doubtInput.value = '';
+                    }
+                }
+
+                // Show/hide dating subtype when "amoroso" selected
+                if (contextType === 'relationType') {
+                    const datingSubtype = document.getElementById('datingSubtype');
+                    if (this.getAttribute('data-value') === 'amoroso') {
+                        datingSubtype.classList.remove('hidden');
+                    } else {
+                        datingSubtype.classList.add('hidden');
+                        // Reset dating app selection
+                        contextValues.datingApp = null;
+                        datingSubtype.querySelectorAll('.context-option').forEach(o => o.classList.remove('selected'));
+                    }
+                }
             });
         });
 
@@ -1720,18 +2058,10 @@
             });
         }
 
-        function analyzeConversation() {
+        function analyzeConversationCore() {
+            // Core analysis - validation done by startAnalysisFlow()
             const text = document.getElementById('conversation').value.trim();
             const doubt = document.getElementById('mainDoubt').value.trim();
-            const errorEl = document.getElementById('error');
-            const t = i18n[currentLang];
-
-            if (!doubt) { errorEl.textContent = t.errorNoDoubt; errorEl.classList.add('active'); return; }
-            if (inputMode === 'text' && !text) { errorEl.textContent = t.errorEmpty; errorEl.classList.add('active'); return; }
-            if (inputMode === 'text' && text.length < 50) { errorEl.textContent = t.errorShort; errorEl.classList.add('active'); return; }
-            if (inputMode === 'image' && uploadedImages.length === 0) { errorEl.textContent = t.errorEmpty; errorEl.classList.add('active'); return; }
-            errorEl.classList.remove('active');
-
             const lang = currentLang;
             const contextBonus = inferFromContext();
 
@@ -1800,33 +2130,60 @@
 
                 const sinaisTexto = abuseResult.detected.map(s => triagemAbuso[lang].sinais[s]).filter(s => s).join(', ');
                 document.getElementById('sinaisDetectados').textContent = lang === 'pt'
-                    ? 'Há sinais de: ' + sinaisTexto
-                    : 'There are signs of: ' + sinaisTexto;
+                    ? 'A conversa contém sinais de: ' + sinaisTexto
+                    : 'The conversation contains signs of: ' + sinaisTexto;
                 document.getElementById('orientacaoSegura').textContent = triagemAbuso[lang].orientacao[nivel];
             } else {
                 triagemEl.classList.remove('active');
             }
 
-            // Determine primary pattern - prioriza dúvida da usuária analisando contexto
+            // Determine primary pattern - prioriza objetivo selecionado
             let padraoKey = 'saudavel';
             let maxScore = 25;
 
-            // Analisa dúvida da usuária para contexto adicional
-            const doubtLower = doubt.toLowerCase();
-            const doubtContext = {
-                evasao: /ele (gosta|quer|tem interesse)|tá enrolando|evitando|fugindo|não responde|some/i.test(doubtLower),
-                assimetria: /eu (que|sempre|puxo|corro)|só eu|eu (busco|inicio)|desigual/i.test(doubtLower),
-                clareza: /o que somos|definir|namoro|relacionamento|futuro|clareza|compromisso/i.test(doubtLower),
-                desvio: /sexo|piada|desvia|muda de assunto|não leva a sério/i.test(doubtLower),
-                vulnerabilidade: /promete|diz que ama|se abre|pede desculpa|não muda|palavras/i.test(doubtLower)
-            };
+            // Aplica bônus baseado no OBJETIVO selecionado (dropdown)
+            const objetivo = contextValues.objective;
+            if (objetivo === 'interesse') {
+                evasaoScore = Math.min(100, evasaoScore + 15);
+                faltaClarezaScore = Math.min(100, faltaClarezaScore + 10);
+            } else if (objetivo === 'reciprocidade') {
+                assimetriaScore = Math.min(100, assimetriaScore + 15);
+                baixaReciprocidadeScore = Math.min(100, baixaReciprocidadeScore + 15);
+            } else if (objetivo === 'evasao') {
+                evasaoScore = Math.min(100, evasaoScore + 20);
+            } else if (objetivo === 'insistir') {
+                assimetriaScore = Math.min(100, assimetriaScore + 10);
+                evasaoScore = Math.min(100, evasaoScore + 10);
+            } else if (objetivo === 'redflags') {
+                // Aumenta sensibilidade para todos os sinais de risco
+                vulnerabilidadeSemAcaoScore = Math.min(100, vulnerabilidadeSemAcaoScore + 15);
+                desvioSexualHumorScore = Math.min(100, desvioSexualHumorScore + 10);
+            }
 
-            // Aplica bônus baseado na dúvida
-            if (doubtContext.evasao) evasaoScore = Math.min(100, evasaoScore + 15);
-            if (doubtContext.assimetria) assimetriaScore = Math.min(100, assimetriaScore + 15);
-            if (doubtContext.clareza) faltaClarezaScore = Math.min(100, faltaClarezaScore + 15);
-            if (doubtContext.desvio) desvioSexualHumorScore = Math.min(100, desvioSexualHumorScore + 15);
-            if (doubtContext.vulnerabilidade) vulnerabilidadeSemAcaoScore = Math.min(100, vulnerabilidadeSemAcaoScore + 15);
+            // Se objetivo é "outro", analisa texto livre (comportamento legado)
+            if (objetivo === 'outro' && doubt) {
+                const doubtLower = doubt.toLowerCase();
+                if (/ele (gosta|quer|tem interesse)|tá enrolando|evitando|fugindo|não responde|some/i.test(doubtLower)) {
+                    evasaoScore = Math.min(100, evasaoScore + 15);
+                }
+                if (/eu (que|sempre|puxo|corro)|só eu|eu (busco|inicio)|desigual/i.test(doubtLower)) {
+                    assimetriaScore = Math.min(100, assimetriaScore + 15);
+                }
+                if (/o que somos|definir|namoro|relacionamento|futuro|clareza|compromisso/i.test(doubtLower)) {
+                    faltaClarezaScore = Math.min(100, faltaClarezaScore + 15);
+                }
+            }
+
+            // ⚠️ DATING APP HEURISTICS: se amoroso + dating app + nunca se viram
+            const isDatingApp = contextValues.relationType === 'amoroso' && contextValues.datingApp === 'dating';
+            const nuncaSeViram = contextValues.frequency === 'nunca';
+            if (isDatingApp && nuncaSeViram) {
+                // Reduz peso de baixa reciprocidade (normal em dating apps)
+                baixaReciprocidadeScore = Math.max(0, baixaReciprocidadeScore - 20);
+                // Aumenta foco em proposta concreta / follow-through
+                evasaoScore = Math.min(100, evasaoScore + 10);
+                faltaClarezaScore = Math.min(100, faltaClarezaScore + 10);
+            }
 
             if (evasaoScore > maxScore) { padraoKey = 'evasaoAlta'; maxScore = evasaoScore; }
             if (assimetriaScore > maxScore) { padraoKey = 'assimetriaAlta'; maxScore = assimetriaScore; }
@@ -1843,8 +2200,9 @@
             // ⚠️ LÓGICA POR TIPO DE VÍNCULO - Usa diagnósticos específicos
             const tipoVinculo = contextValues.relationType;
 
-            // Detecta perguntas sobre amizade na dúvida
-            const perguntaAmizade = /amig[oa]|amizade|confia|verdadeir[oa]/i.test(doubtLower);
+            // Detecta perguntas sobre amizade (só se objetivo é "outro" com texto)
+            const doubtLower = doubt ? doubt.toLowerCase() : '';
+            const perguntaAmizade = doubtLower && /amig[oa]|amizade|confia|verdadeir[oa]/i.test(doubtLower);
 
             // ⚠️ IMPORTANTE: Se detectou sinais de abuso, NÃO usar padrões pacificadores
             const temSinaisAbuso = abuseResult.detected.length > 0;
@@ -1910,11 +2268,11 @@
                 nivelEl.className = 'nivel nivel-medio';
                 nivelEl.textContent = t.nivelMedio;
                 document.getElementById('sinaisDetectados').textContent = lang === 'pt'
-                    ? 'Há sinais consistentes de: desvio emocional sistemático (sexualização/humor como anestésico)'
-                    : 'There are consistent signs of: systematic emotional deflection (sexualization/humor as numbing)';
+                    ? 'A conversa contém sinais de: desvio emocional sistemático (sexualização/humor como anestésico)'
+                    : 'The conversation contains signs of: systematic emotional deflection (sexualization/humor as numbing)';
                 document.getElementById('orientacaoSegura').textContent = lang === 'pt'
-                    ? 'Esse padrão indica evitação de profundidade emocional. Não é necessariamente abuso, mas impede construção de vínculo real.'
-                    : 'This pattern indicates avoidance of emotional depth. Not necessarily abuse, but prevents building real connection.';
+                    ? 'Esse padrão sugere evitação de profundidade emocional. Não determina intenção, mas impede construção de vínculo real.'
+                    : 'This pattern suggests avoidance of emotional depth. Does not determine intent, but prevents building real connection.';
             }
             document.getElementById('feedbackPattern').value = padraoKey;
             document.getElementById('feedbackLang').value = lang;
@@ -2026,18 +2384,302 @@
             document.getElementById('feedbackAccuracy').value = '5';
             uploadedImages = [];
             renderPreview();
-            contextValues = { relationType: null, initiative: null, frequency: null, emotional: null };
+            contextValues = { objective: null, relationType: null, datingApp: null, initiative: null, frequency: null, emotional: null };
             document.querySelectorAll('.context-option').forEach(o => o.classList.remove('selected'));
+            document.getElementById('mainDoubt').classList.add('hidden');
+            document.getElementById('mainDoubt').value = '';
+            document.getElementById('datingSubtype').classList.add('hidden');
+        }
+
+        // ================== PARTICIPANT DETECTION ==================
+        let detectedParticipants = [];
+        let selectedParticipant = null;
+        let messageSide = null;
+        let clarificationAnswers = { q1: null, q2: null, q3: null };
+
+        function detectParticipantsFromText(text) {
+            // Detect patterns like "[date] Name:" or "Name:"
+            const patterns = [
+                /\[[\d\/\-\s:,]+\]\s*([^:]+):/g,  // [01/01/2024, 10:30] Name:
+                /^([A-Za-zÀ-ÿ\s]+):\s/gm           // Name: at start of line
+            ];
+
+            const names = new Set();
+            patterns.forEach(pattern => {
+                let match;
+                while ((match = pattern.exec(text)) !== null) {
+                    const name = match[1].trim();
+                    if (name && name.length > 1 && name.length < 30 && !/^\d+$/.test(name)) {
+                        names.add(name);
+                    }
+                }
+            });
+
+            return Array.from(names).slice(0, 5); // Max 5 names
+        }
+
+        function showParticipantModal(names) {
+            const t = i18n[currentLang];
+            const container = document.getElementById('participantOptions');
+
+            container.innerHTML = names.map(name => `
+                <label class="participant-option" onclick="selectParticipant(this, '${name.replace(/'/g, "\\'")}')">
+                    <input type="radio" name="participant" value="${name}">
+                    <span>${name}</span>
+                </label>
+            `).join('') + `
+                <label class="participant-option" onclick="selectParticipant(this, '_other')">
+                    <input type="radio" name="participant" value="_other">
+                    <span>${t.participantOther}</span>
+                </label>
+            `;
+
+            document.getElementById('participantModal').classList.add('active');
+        }
+
+        function selectParticipant(el, name) {
+            document.querySelectorAll('.participant-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedParticipant = name;
+        }
+
+        function confirmParticipant() {
+            if (!selectedParticipant) return;
+            document.getElementById('participantModal').classList.remove('active');
+            continueAnalysis();
+        }
+
+        // ================== SIDE QUESTION (PRINTS) ==================
+        function showSideModal() {
+            document.getElementById('sideModal').classList.add('active');
+        }
+
+        function confirmSide() {
+            const selected = document.querySelector('input[name="messageSide"]:checked');
+            if (!selected) return;
+            messageSide = selected.value;
+            document.getElementById('sideModal').classList.remove('active');
+            continueAnalysis();
+        }
+
+        // ================== LOW HISTORY MODE ==================
+        function countMessages(text) {
+            // Count lines that look like messages
+            const lines = text.split('\n').filter(l => l.trim().length > 10);
+            return lines.length;
+        }
+
+        function showLowHistoryModal() {
+            const t = i18n[currentLang];
+            const container = document.getElementById('clarificationQuestions');
+
+            container.innerHTML = `
+                <div class="clarification-item">
+                    <p class="clarification-q">${t.clarQ1}</p>
+                    <div class="clarification-opts">
+                        <span class="clarification-opt" onclick="setClarification('q1', true, this)">${t.clarYes}</span>
+                        <span class="clarification-opt" onclick="setClarification('q1', false, this)">${t.clarNo}</span>
+                    </div>
+                </div>
+                <div class="clarification-item">
+                    <p class="clarification-q">${t.clarQ2}</p>
+                    <div class="clarification-opts">
+                        <span class="clarification-opt" onclick="setClarification('q2', true, this)">${t.clarYes}</span>
+                        <span class="clarification-opt" onclick="setClarification('q2', false, this)">${t.clarNo}</span>
+                    </div>
+                </div>
+                <div class="clarification-item">
+                    <p class="clarification-q">${t.clarQ3}</p>
+                    <div class="clarification-opts">
+                        <span class="clarification-opt" onclick="setClarification('q3', true, this)">${t.clarYes}</span>
+                        <span class="clarification-opt" onclick="setClarification('q3', false, this)">${t.clarNo}</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('lowHistoryModal').classList.add('active');
+        }
+
+        function setClarification(q, value, el) {
+            clarificationAnswers[q] = value;
+            const siblings = el.parentElement.querySelectorAll('.clarification-opt');
+            siblings.forEach(s => s.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function submitClarifications() {
+            // Check if all answered
+            if (clarificationAnswers.q1 === null || clarificationAnswers.q2 === null || clarificationAnswers.q3 === null) {
+                return;
+            }
+            document.getElementById('lowHistoryModal').classList.remove('active');
+
+            // Apply bonuses based on clarification answers
+            if (clarificationAnswers.q1) contextValues.initiative = 'eu'; // User initiates
+            if (clarificationAnswers.q2) contextValues.frequency = 'raramente'; // Canceled plans = low meeting
+            if (clarificationAnswers.q3) contextValues.emotional = 'cansada'; // Feels more invested
+
+            continueAnalysis();
+        }
+
+        // ================== ANALYSIS FLOW ==================
+        let analysisState = { step: 'initial', text: '', lowHistory: false };
+
+        function startAnalysisFlow() {
+            const text = document.getElementById('conversation').value.trim();
+            const errorEl = document.getElementById('error');
+            const t = i18n[currentLang];
+
+            // Basic validation
+            if (!contextValues.objective) {
+                errorEl.textContent = t.errorNoDoubt;
+                errorEl.classList.add('active');
+                return;
+            }
+
+            const doubt = document.getElementById('mainDoubt').value.trim();
+            if (contextValues.objective === 'outro' && !doubt) {
+                errorEl.textContent = currentLang === 'pt' ? 'Especifique seu objetivo.' : 'Specify your objective.';
+                errorEl.classList.add('active');
+                return;
+            }
+
+            if (inputMode === 'text' && !text) {
+                errorEl.textContent = t.errorEmpty;
+                errorEl.classList.add('active');
+                return;
+            }
+            if (inputMode === 'text' && text.length < 50) {
+                errorEl.textContent = t.errorShort;
+                errorEl.classList.add('active');
+                return;
+            }
+            if (inputMode === 'image' && uploadedImages.length === 0) {
+                errorEl.textContent = t.errorEmpty;
+                errorEl.classList.add('active');
+                return;
+            }
+            errorEl.classList.remove('active');
+
+            analysisState.text = text;
+            analysisState.step = 'initial';
+
+            if (inputMode === 'text') {
+                // Step 1: Check for participant names
+                detectedParticipants = detectParticipantsFromText(text);
+                if (detectedParticipants.length >= 2) {
+                    analysisState.step = 'participant';
+                    showParticipantModal(detectedParticipants);
+                    return;
+                }
+
+                // Step 2: Check for low history
+                const msgCount = countMessages(text);
+                if (msgCount < 12) {
+                    analysisState.step = 'lowHistory';
+                    analysisState.lowHistory = true;
+                    showLowHistoryModal();
+                    return;
+                }
+            } else {
+                // Image mode: show side question
+                analysisState.step = 'side';
+                showSideModal();
+                return;
+            }
+
+            // No modals needed, continue directly
+            continueAnalysis();
+        }
+
+        function continueAnalysis() {
+            // If we came from participant modal and still need low history check
+            if (analysisState.step === 'participant' && inputMode === 'text') {
+                const msgCount = countMessages(analysisState.text);
+                if (msgCount < 12 && !analysisState.lowHistory) {
+                    analysisState.step = 'lowHistory';
+                    analysisState.lowHistory = true;
+                    showLowHistoryModal();
+                    return;
+                }
+            }
+
+            // Run the actual analysis
+            runAnalysis();
+        }
+
+        function runAnalysis() {
+            // Show loading state with progress animation
+            showLoading();
+        }
+
+        function showLoading() {
+            const t = i18n[currentLang];
+            const overlay = document.getElementById('loadingOverlay');
+            const progress = document.getElementById('loadingProgress');
+            const stepEl = document.getElementById('loadingStep');
+
+            overlay.classList.add('active');
+            progress.style.width = '0%';
+
+            // Step 1: Identifying patterns (0-40%)
+            stepEl.textContent = t.loadingStep || 'Identificando padrões';
+            animateProgress(0, 40, 600, () => {
+                // Step 2: Calculating scores (40-70%)
+                stepEl.textContent = t.loadingStep2 || 'Calculando scores';
+                animateProgress(40, 70, 500, () => {
+                    // Step 3: Generating diagnosis (70-100%)
+                    stepEl.textContent = t.loadingStep3 || 'Gerando diagnóstico';
+                    animateProgress(70, 100, 400, () => {
+                        // Complete - run actual analysis
+                        setTimeout(() => {
+                            overlay.classList.remove('active');
+                            analyzeConversationCore();
+                        }, 200);
+                    });
+                });
+            });
+        }
+
+        function animateProgress(start, end, duration, callback) {
+            const progress = document.getElementById('loadingProgress');
+            const step = (end - start) / (duration / 16);
+            let current = start;
+
+            const animate = () => {
+                current += step;
+                if (current >= end) {
+                    progress.style.width = end + '%';
+                    if (callback) callback();
+                } else {
+                    progress.style.width = current + '%';
+                    requestAnimationFrame(animate);
+                }
+            };
+            animate();
         }
 
         const savedLang = localStorage.getItem('alpha-lang') || (navigator.language.startsWith('pt') ? 'pt' : 'en');
         setLang(savedLang);
     </script>
 
-    <p class="footer-disclaimer" data-i18n="footerDisclaimer">Para fins de entretenimento. Não substitui acompanhamento profissional.</p>
+    <div class="legal-section">
+        <p class="legal-disclaimer" data-i18n="legalDisclaimer">
+            Este relatório é uma análise estatística de padrões de comunicação e não constitui aconselhamento psicológico ou médico.
+        </p>
+        <p class="legal-responsibility" data-i18n="legalResponsibility">
+            As decisões tomadas a partir deste relatório são de responsabilidade exclusiva da usuária.
+        </p>
+        <p class="legal-privacy" data-i18n="legalPrivacy">
+            Seus dados são processados localmente e não são armazenados em nossos servidores.
+        </p>
+        <p class="legal-contact">
+            Contato: <a href="mailto:hello@lolalabstudio.com">hello@lolalabstudio.com</a> · Controladora: Lola Lab
+        </p>
+    </div>
 
     <footer>
-        Made by <a href="https://lolalab.studio" target="_blank">LolaLab</a>
+        Made by <a href="https://lolalab.studio" target="_blank">Lola Lab</a>
     </footer>
 </body>
 </html>
