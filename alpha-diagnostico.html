@@ -2166,19 +2166,8 @@
                 desvioSexualHumorScore = Math.min(100, desvioSexualHumorScore + 10);
             }
 
-            // Se objetivo é "outro", analisa texto livre (comportamento legado)
-            if (objetivo === 'outro' && doubt) {
-                const doubtLower = doubt.toLowerCase();
-                if (/ele (gosta|quer|tem interesse)|tá enrolando|evitando|fugindo|não responde|some/i.test(doubtLower)) {
-                    evasaoScore = Math.min(100, evasaoScore + 15);
-                }
-                if (/eu (que|sempre|puxo|corro)|só eu|eu (busco|inicio)|desigual/i.test(doubtLower)) {
-                    assimetriaScore = Math.min(100, assimetriaScore + 15);
-                }
-                if (/o que somos|definir|namoro|relacionamento|futuro|clareza|compromisso/i.test(doubtLower)) {
-                    faltaClarezaScore = Math.min(100, faltaClarezaScore + 15);
-                }
-            }
+            // REMOVIDO: Campo mainDoubt (doubt) não existe mais no MVP
+            // A lógica de análise por texto livre foi desativada
 
             // ⚠️ DATING APP HEURISTICS: se plataforma é dating app + nunca se viram
             const isDatingApp = contextValues.platform === 'bumble' || contextValues.platform === 'tinder';
@@ -2206,9 +2195,9 @@
             // ⚠️ LÓGICA POR TIPO DE VÍNCULO - Usa diagnósticos específicos
             const tipoVinculo = contextValues.relationType;
 
-            // Detecta perguntas sobre amizade (só se objetivo é "outro" com texto)
-            const doubtLower = doubt ? doubt.toLowerCase() : '';
-            const perguntaAmizade = doubtLower && /amig[oa]|amizade|confia|verdadeir[oa]/i.test(doubtLower);
+            // Detecta perguntas sobre amizade (campo mainDoubt removido do MVP)
+            // A lógica de perguntaAmizade agora depende apenas do tipo de vínculo selecionado
+            const perguntaAmizade = false; // Campo mainDoubt não existe mais no MVP
 
             // ⚠️ IMPORTANTE: Se detectou sinais de abuso, NÃO usar padrões pacificadores
             const temSinaisAbuso = abuseResult.detected.length > 0;
