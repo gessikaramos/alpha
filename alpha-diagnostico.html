@@ -592,6 +592,104 @@
             cursor: not-allowed;
         }
 
+        /* INSUFFICIENT DATA STATE (Confidence Gate) */
+        .insufficient-data {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+        .insufficient-data.active {
+            display: block;
+        }
+        .insufficient-content {
+            background: linear-gradient(135deg, rgba(38, 38, 38, 0.9), rgba(23, 23, 23, 0.95));
+            border: 1px solid #404040;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+        }
+        .insufficient-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fafafa;
+            margin: 0 0 16px 0;
+        }
+        .insufficient-main {
+            font-size: 15px;
+            color: #a3a3a3;
+            margin: 0 0 24px 0;
+            line-height: 1.6;
+        }
+        .insufficient-reasons,
+        .insufficient-help {
+            text-align: left;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        .insufficient-reasons h4,
+        .insufficient-help h4 {
+            font-size: 13px;
+            color: #737373;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 12px 0;
+        }
+        .insufficient-reasons ul,
+        .insufficient-help ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .insufficient-reasons li {
+            color: #ef4444;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .insufficient-help li {
+            color: #a3a3a3;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .insufficient-ctas {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+        .insufficient-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .insufficient-btn.primary {
+            background: #fafafa;
+            color: #171717;
+            border: none;
+        }
+        .insufficient-btn.primary:hover {
+            background: #e5e5e5;
+        }
+        .insufficient-btn.secondary {
+            background: transparent;
+            color: #a3a3a3;
+            border: 1px solid #404040;
+        }
+        .insufficient-btn.secondary:hover {
+            border-color: #737373;
+            color: #fafafa;
+        }
+        .insufficient-meta {
+            margin-top: 24px;
+            color: #525252;
+            font-size: 11px;
+            font-family: monospace;
+        }
+
         /* Legal Section */
         .legal-section {
             text-align: center;
@@ -862,6 +960,11 @@
 
                 <div id="error" class="error-msg"></div>
                 <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysisFlow()">Analisar</button>
+            </div>
+
+            <!-- INSUFFICIENT DATA STATE (Confidence Gate) -->
+            <div id="insufficientData" class="insufficient-data">
+                <!-- Content rendered dynamically by renderInsufficientData() -->
             </div>
 
             <div id="results" class="results">
@@ -2100,10 +2203,197 @@
             });
         }
 
+        // ================== CONFIDENCE GATE ==================
+
+        function extractConversationFeatures(text) {
+            const lines = text.split('\n').filter(l => l.trim());
+
+            // 1. Contagem de mensagens
+            const messageCount = lines.length;
+
+            // 2. Janela temporal (detectar datas ou inferir)
+            // Padrões de data: dd/mm, dd/mm/yyyy, "ontem", "semana passada", etc.
+            const datePatterns = /(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)|(\d{1,2}\s+de\s+\w+)|(ontem|anteontem|semana passada|mês passado|há \d+ dias|há \d+ semanas)/gi;
+            const datesFound = text.match(datePatterns) || [];
+            // Se encontrou múltiplas datas, assume janela maior; senão, inferir pelo tamanho
+            let daysSpan = 0;
+            if (datesFound.length >= 2) {
+                daysSpan = 7; // Assume pelo menos 7 dias se há múltiplas referências temporais
+            } else if (messageCount > 50) {
+                daysSpan = 7; // Conversas longas provavelmente abrangem vários dias
+            } else if (messageCount > 30) {
+                daysSpan = 3;
+            } else {
+                daysSpan = 1;
+            }
+
+            // 3. Eventos de compromisso (convites, encontros, planos)
+            const commitmentPatterns = /vamos (sair|jantar|almoçar|nos ver|marcar)|bora |encontro|encontrar|vem (cá|aqui|pra cá)|te busco|passo aí|vou aí|marcado|desmarcou|cancelou|adiou|não (vai dar|dá|posso)|let'?s (meet|go|hang)|meet up|come over|pick you up|cancelled|postponed/gi;
+            const commitmentMatches = text.match(commitmentPatterns) || [];
+            const commitmentEvents = commitmentMatches.length;
+
+            // 4. Fonte (texto colado vs OCR/prints)
+            // Se inputMode === 'image', é OCR = baixa confiança
+            const source = inputMode === 'image' ? 'ocr' : 'text';
+
+            return {
+                messageCount,
+                daysSpan,
+                commitmentEvents,
+                source
+            };
+        }
+
+        function checkConfidenceGate(features) {
+            const hasMinMessages = features.messageCount >= 25;
+            const hasTimeWindow = features.daysSpan >= 7;
+            const hasCommitment = features.commitmentEvents > 0;
+            const sourceReliable = features.source !== 'ocr';
+
+            const canAnalyze = hasMinMessages && hasTimeWindow && hasCommitment && sourceReliable;
+
+            return {
+                canAnalyze,
+                hasMinMessages,
+                hasTimeWindow,
+                hasCommitment,
+                sourceReliable,
+                features
+            };
+        }
+
+        function renderInsufficientData(gateResult) {
+            const t = i18n[currentLang];
+            const isPortuguese = currentLang === 'pt';
+
+            // Esconder área de input e loading
+            document.getElementById('inputArea').style.display = 'none';
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) loadingOverlay.classList.remove('active');
+
+            // Construir motivos dinâmicos
+            const reasons = [];
+            if (!gateResult.hasMinMessages) {
+                reasons.push(isPortuguese
+                    ? 'Conversa curta demais para inferir padrões'
+                    : 'Conversation too short to infer patterns');
+            }
+            if (!gateResult.hasTimeWindow) {
+                reasons.push(isPortuguese
+                    ? 'Intervalo temporal insuficiente'
+                    : 'Insufficient time span');
+            }
+            if (!gateResult.hasCommitment) {
+                reasons.push(isPortuguese
+                    ? 'Ausência de eventos concretos (convites, encontros, decisões)'
+                    : 'No concrete events (invites, meetings, decisions)');
+            }
+            if (!gateResult.sourceReliable) {
+                reasons.push(isPortuguese
+                    ? 'Fonte com baixa confiabilidade (prints ou OCR)'
+                    : 'Low reliability source (screenshots or OCR)');
+            }
+
+            // Construir lista de ajuda
+            const helpItems = [];
+            if (!gateResult.hasMinMessages || !gateResult.hasTimeWindow) {
+                helpItems.push(isPortuguese
+                    ? 'Mais mensagens ou um período maior da conversa'
+                    : 'More messages or a longer period of conversation');
+            }
+            if (!gateResult.hasCommitment) {
+                helpItems.push(isPortuguese
+                    ? 'Menção clara a convites, encontros ou cancelamentos'
+                    : 'Clear mention of invites, meetings or cancellations');
+            }
+            if (!gateResult.sourceReliable) {
+                helpItems.push(isPortuguese
+                    ? 'Texto original da conversa (não prints)'
+                    : 'Original conversation text (not screenshots)');
+            }
+
+            // Renderizar estado
+            const insufficientEl = document.getElementById('insufficientData');
+            insufficientEl.innerHTML = `
+                <div class="insufficient-content">
+                    <h2 class="insufficient-title">
+                        ${isPortuguese ? 'Leitura inicial (dados insuficientes)' : 'Initial reading (insufficient data)'}
+                    </h2>
+                    <p class="insufficient-main">
+                        ${isPortuguese
+                            ? 'Não há informação suficiente para identificar padrões com segurança.'
+                            : 'There is not enough information to safely identify patterns.'}
+                    </p>
+
+                    <div class="insufficient-reasons">
+                        <h4>${isPortuguese ? 'Motivos:' : 'Reasons:'}</h4>
+                        <ul>
+                            ${reasons.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="insufficient-help">
+                        <h4>${isPortuguese ? 'O que ajudaria a analisar:' : 'What would help to analyze:'}</h4>
+                        <ul>
+                            ${helpItems.map(h => `<li>${h}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="insufficient-ctas">
+                        <button class="insufficient-btn primary" onclick="addMoreData()">
+                            ${isPortuguese ? 'Adicionar mais dados' : 'Add more data'}
+                        </button>
+                        <button class="insufficient-btn secondary" onclick="resetAnalysis()">
+                            ${isPortuguese ? 'Analisar outra conversa' : 'Analyze another conversation'}
+                        </button>
+                    </div>
+
+                    <div class="insufficient-meta">
+                        <small>
+                            ${isPortuguese ? 'Mensagens:' : 'Messages:'} ${gateResult.features.messageCount} |
+                            ${isPortuguese ? 'Dias:' : 'Days:'} ~${gateResult.features.daysSpan} |
+                            ${isPortuguese ? 'Eventos:' : 'Events:'} ${gateResult.features.commitmentEvents}
+                        </small>
+                    </div>
+                </div>
+            `;
+            insufficientEl.classList.add('active');
+        }
+
+        function addMoreData() {
+            // Voltar para o formulário mantendo os dados
+            document.getElementById('insufficientData').classList.remove('active');
+            document.getElementById('inputArea').style.display = 'block';
+            // Focar no textarea
+            document.getElementById('conversation').focus();
+        }
+
+        // ================== CORE ANALYSIS ==================
+
         function analyzeConversationCore() {
             console.log('analyzeConversationCore called');
-            // Core analysis - validation done by startAnalysisFlow()
             const text = document.getElementById('conversation').value.trim();
+
+            // ========== CONFIDENCE GATE (OBRIGATÓRIO) ==========
+            const features = extractConversationFeatures(text);
+            const gateResult = checkConfidenceGate(features);
+
+            if (!gateResult.canAnalyze) {
+                console.info('[ALPHA] confidence_gate: blocked', {
+                    hasMinMessages: gateResult.hasMinMessages,
+                    hasTimeWindow: gateResult.hasTimeWindow,
+                    hasCommitment: gateResult.hasCommitment,
+                    sourceReliable: gateResult.sourceReliable,
+                    features: features
+                });
+                renderInsufficientData(gateResult);
+                return; // BLOQUEIO TOTAL DO PIPELINE
+            }
+
+            console.info('[ALPHA] confidence_gate: passed', features);
+            // ====================================================
+
+            // Core analysis - validation done by startAnalysisFlow()
             console.log('Text length:', text.length);
             const lang = currentLang;
             const contextBonus = inferFromContext();
@@ -2526,11 +2816,13 @@
         }
 
         function resetAnalysis() {
+            console.info('[ALPHA] reset_analysis');
             document.getElementById('conversation').value = '';
             document.getElementById('inputArea').style.display = 'block';
             document.getElementById('results').classList.remove('active');
             document.getElementById('error').classList.remove('active');
             document.getElementById('triagemRisco').classList.remove('active');
+            document.getElementById('insufficientData').classList.remove('active');
             document.getElementById('feedbackForm').style.display = 'block';
             document.getElementById('feedbackSuccess').classList.remove('active');
             document.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('selected'));
@@ -2852,13 +3144,13 @@
 
     <footer>
         Made by <a href="https://lolalab.studio" target="_blank">Lola Lab</a>
-        <span class="build-version">v0.2.0</span>
+        <span class="build-version">v0.3.0</span>
     </footer>
 
     <script>
         // BUILD_VERSION for debugging
-        const BUILD_VERSION = 'v0.2.0';
-        const BUILD_DATE = '2026-02-04';
+        const BUILD_VERSION = 'v0.3.0';
+        const BUILD_DATE = '2026-02-05';
         console.info('[ALPHA] BUILD_VERSION:', BUILD_VERSION, BUILD_DATE);
     </script>
 </body>
