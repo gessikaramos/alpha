@@ -7,6 +7,8 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Tesseract.js for OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -965,6 +967,55 @@
         }
         .clarification-opt:hover { border-color: #404040; }
         .clarification-opt.selected { border-color: #fafafa; color: #fafafa; background: #1a1a1a; }
+
+        /* AI Results Styles */
+        .score-bars { display: flex; flex-direction: column; gap: 12px; }
+        .score-item { }
+        .score-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .score-name { font-size: 13px; color: #a3a3a3; }
+        .score-value { font-size: 13px; font-weight: 500; }
+        .score-bar-bg { height: 6px; background: #262626; border-radius: 3px; overflow: hidden; }
+        .score-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+        .result-list { list-style: none; padding: 0; margin: 0; }
+        .result-list li { padding: 8px 0; border-bottom: 1px solid #262626; color: #d4d4d4; }
+        .result-list li:last-child { border-bottom: none; }
+
+        .response-cards { display: flex; flex-direction: column; gap: 12px; }
+        .response-card {
+            background: #1a1a1a;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .response-text { font-size: 14px; color: #d4d4d4; line-height: 1.5; }
+        .copy-btn {
+            align-self: flex-end;
+            background: transparent;
+            border: 1px solid #404040;
+            color: #a3a3a3;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { border-color: #fafafa; color: #fafafa; }
+
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid #404040;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 12px;
+            color: #a3a3a3;
+        }
     </style>
 </head>
 <body>
@@ -983,17 +1034,16 @@
         <main>
             <div id="inputArea">
                 <!-- Input Mode Toggle -->
-                <!-- Modo imagem desabilitado temporariamente - só texto por enquanto -->
-                <div class="input-mode-toggle" style="display: none;">
+                <div class="input-mode-toggle">
                     <button class="mode-btn active" id="textModeBtn" onclick="setInputMode('text')">
                         <span class="icon">📝</span>
                         <span class="label" data-i18n="textModeLabel">Colar texto</span>
                         <span class="hint" data-i18n="textModeHint">rápido</span>
                     </button>
-                    <button class="mode-btn disabled" id="imageModeBtn" disabled title="Em breve">
+                    <button class="mode-btn" id="imageModeBtn" onclick="setInputMode('image')">
                         <span class="icon">📷</span>
                         <span class="label" data-i18n="imageModeLabel">Enviar prints</span>
-                        <span class="hint">em breve</span>
+                        <span class="hint" data-i18n="imageModeHint">mais fácil</span>
                     </button>
                 </div>
 
@@ -1269,6 +1319,11 @@
         let contextValues = { objective: null, userRole: null, relationType: null, platform: null, initiative: null, frequency: null, emotional: null };
         let detectedPattern = '';
 
+        // === CONFIGURAÇÃO DA API ===
+        // Depois de fazer deploy do worker, coloque a URL aqui:
+        const ALPHA_API_URL = ''; // Ex: 'https://alpha-api.seu-subdomain.workers.dev'
+        const USE_AI = ALPHA_API_URL.length > 0; // Usa IA se tiver URL configurada
+
         // Analysis state variables (global scope)
         let analysisState = { step: 'initial', text: '', lowHistory: false };
         let detectedParticipants = [];
@@ -1332,6 +1387,11 @@
                 errorShort: 'Cole uma conversa mais completa ou envie mais prints.',
                 errorNoDoubt: 'Selecione o objetivo da análise.',
                 errorNoUserRole: 'Indique quem é você nessa conversa.',
+                errorOcr: 'Erro ao ler imagens. Tente colar o texto.',
+                ocrStep: 'Lendo imagens...',
+                ocrStepN: 'Lendo imagem {n} de {total}...',
+                aiStep1: 'Analisando com IA...',
+                aiStepDone: 'Análise completa!',
                 diagTitle: 'Diagnóstico Central',
                 patternTitle: 'Padrão Recorrente',
                 riskTitle: 'Risco Real',
@@ -1440,6 +1500,11 @@
                 errorShort: 'Paste a more complete conversation or upload more screenshots.',
                 errorNoDoubt: 'Select the analysis objective.',
                 errorNoUserRole: 'Indicate who you are in this conversation.',
+                errorOcr: 'Error reading images. Try pasting text instead.',
+                ocrStep: 'Reading images...',
+                ocrStepN: 'Reading image {n} of {total}...',
+                aiStep1: 'Analyzing with AI...',
+                aiStepDone: 'Analysis complete!',
                 diagTitle: 'Central Diagnosis',
                 patternTitle: 'Recurring Pattern',
                 riskTitle: 'Real Risk',
@@ -3428,18 +3493,292 @@
             runAnalysis();
         }
 
-        function runAnalysis() {
+        // OCR: Extract text from images using Tesseract.js
+        async function extractTextFromImages(images) {
+            const t = i18n[currentLang];
+            const overlay = document.getElementById('loadingOverlay');
+            const progress = document.getElementById('loadingProgress');
+            const stepEl = document.getElementById('loadingStep');
+
+            if (overlay) overlay.classList.add('active');
+            if (progress) progress.style.width = '0%';
+            if (stepEl) stepEl.textContent = t.ocrStep || 'Lendo imagens...';
+
+            let allText = '';
+            const total = images.length;
+
+            for (let i = 0; i < images.length; i++) {
+                try {
+                    if (stepEl) stepEl.textContent = (t.ocrStepN || 'Lendo imagem {n} de {total}...').replace('{n}', i + 1).replace('{total}', total);
+                    if (progress) progress.style.width = `${((i + 1) / total) * 60}%`;
+
+                    const result = await Tesseract.recognize(images[i].dataUrl, 'por+eng', {
+                        logger: m => {
+                            if (m.status === 'recognizing text' && progress) {
+                                const base = (i / total) * 60;
+                                const add = (m.progress / total) * 60;
+                                progress.style.width = `${base + add}%`;
+                            }
+                        }
+                    });
+                    allText += result.data.text + '\n\n';
+                } catch (err) {
+                    console.error('[ALPHA] OCR error on image', i, err);
+                }
+            }
+
+            return allText.trim();
+        }
+
+        async function runAnalysis() {
             console.info('[ALPHA] analysis_start', {
+                inputMode,
                 textLength: analysisState.text?.length || 0,
+                imageCount: uploadedImages.length,
                 context: contextValues,
                 lowHistory: analysisState.lowHistory
             });
-            // Show loading state with progress animation
-            showLoading();
+
+            // If image mode, extract text first
+            if (inputMode === 'image' && uploadedImages.length > 0) {
+                try {
+                    const extractedText = await extractTextFromImages(uploadedImages);
+                    console.info('[ALPHA] OCR extracted', extractedText.length, 'chars');
+                    analysisState.text = extractedText;
+
+                    // Also put it in the textarea for visibility
+                    document.getElementById('conversation').value = extractedText;
+                } catch (err) {
+                    console.error('[ALPHA] OCR failed:', err);
+                    const errorEl = document.getElementById('error');
+                    const t = i18n[currentLang];
+                    errorEl.textContent = t.errorOcr || 'Erro ao ler imagens. Tente colar o texto.';
+                    errorEl.classList.add('active');
+                    document.getElementById('loadingOverlay')?.classList.remove('active');
+                    return;
+                }
+            }
+
+            // Show loading and run analysis (AI or fallback)
+            if (USE_AI) {
+                showLoadingAI();
+            } else {
+                showLoadingFallback();
+            }
         }
 
-        function showLoading() {
-            console.log('showLoading called');
+        // === ANÁLISE COM IA (Claude API) ===
+        async function callAlphaAPI(text, context) {
+            const response = await fetch(ALPHA_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ conversation: text, context })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.error || 'API failed');
+            }
+
+            return data.analysis;
+        }
+
+        async function showLoadingAI() {
+            console.log('[ALPHA] Using AI analysis');
+            const t = i18n[currentLang];
+            const overlay = document.getElementById('loadingOverlay');
+            const progress = document.getElementById('loadingProgress');
+            const stepEl = document.getElementById('loadingStep');
+
+            if (overlay) overlay.classList.add('active');
+            if (progress) progress.style.width = '0%';
+            if (stepEl) stepEl.textContent = t.aiStep1 || 'Analisando com IA...';
+
+            // Animate while waiting for API
+            let progressValue = 0;
+            const progressInterval = setInterval(() => {
+                progressValue += 2;
+                if (progressValue <= 90 && progress) {
+                    progress.style.width = `${progressValue}%`;
+                }
+            }, 100);
+
+            try {
+                const analysis = await callAlphaAPI(analysisState.text, contextValues);
+                clearInterval(progressInterval);
+
+                if (progress) progress.style.width = '100%';
+                if (stepEl) stepEl.textContent = t.aiStepDone || 'Análise completa!';
+
+                setTimeout(() => {
+                    if (overlay) overlay.classList.remove('active');
+                    renderAIResults(analysis);
+                }, 300);
+
+            } catch (error) {
+                console.error('[ALPHA] AI analysis failed:', error);
+                clearInterval(progressInterval);
+
+                // Fallback to pattern-based analysis
+                if (stepEl) stepEl.textContent = 'Usando análise alternativa...';
+                setTimeout(() => {
+                    if (overlay) overlay.classList.remove('active');
+                    analyzeConversationCore();
+                }, 500);
+            }
+        }
+
+        function renderAIResults(analysis) {
+            console.log('[ALPHA] Rendering AI results:', analysis);
+            const t = i18n[currentLang];
+
+            // Hide other sections
+            document.getElementById('inputSection').style.display = 'none';
+            document.getElementById('insufficientData').style.display = 'none';
+            document.getElementById('lowConfidence').style.display = 'none';
+
+            const resultsEl = document.getElementById('results');
+            resultsEl.style.display = 'block';
+
+            // Build results HTML
+            let html = '';
+
+            // Diagnóstico principal
+            if (analysis.diagnostico) {
+                html += `
+                <div class="result-block diagnostico-ia">
+                    <div class="result-label">Diagnóstico</div>
+                    <div class="result-content" style="font-size: 18px; font-weight: 500; line-height: 1.5;">
+                        ${analysis.diagnostico}
+                    </div>
+                </div>`;
+            }
+
+            // Scores (se houver)
+            if (analysis.scores) {
+                html += `<div class="result-block scores-ia">
+                    <div class="result-label">Padrões Detectados</div>
+                    <div class="score-bars">`;
+
+                const scoreLabels = {
+                    evasao: 'Evasão',
+                    assimetria: 'Assimetria',
+                    faltaClareza: 'Falta de Clareza',
+                    baixaReciprocidade: 'Baixa Reciprocidade',
+                    evasaoElegante: 'Evasão Elegante'
+                };
+
+                for (const [key, label] of Object.entries(scoreLabels)) {
+                    const score = analysis.scores[key] || 0;
+                    const color = score >= 70 ? '#ef4444' : score >= 40 ? '#f59e0b' : '#22c55e';
+                    html += `
+                    <div class="score-item">
+                        <div class="score-header">
+                            <span class="score-name">${label}</span>
+                            <span class="score-value">${score}%</span>
+                        </div>
+                        <div class="score-bar-bg">
+                            <div class="score-bar-fill" style="width: ${score}%; background: ${color};"></div>
+                        </div>
+                    </div>`;
+                }
+                html += `</div></div>`;
+            }
+
+            // O que está acontecendo
+            if (analysis.oQueAcontece) {
+                html += `
+                <div class="result-block">
+                    <div class="result-label">O que está acontecendo</div>
+                    <div class="result-content">${analysis.oQueAcontece}</div>
+                </div>`;
+            }
+
+            // O que vai acontecer
+            if (analysis.oQueVaiAcontecer) {
+                html += `
+                <div class="result-block">
+                    <div class="result-label">O que vai acontecer se nada mudar</div>
+                    <div class="result-content">${analysis.oQueVaiAcontecer}</div>
+                </div>`;
+            }
+
+            // Red flags
+            if (analysis.redFlags && analysis.redFlags.length > 0) {
+                html += `
+                <div class="result-block red-flags-ia" style="border-color: #ef4444;">
+                    <div class="result-label" style="color: #ef4444;">⚠️ Red Flags</div>
+                    <ul class="result-list">
+                        ${analysis.redFlags.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                </div>`;
+            }
+
+            // O que fazer
+            if (analysis.oQueFazer && analysis.oQueFazer.length > 0) {
+                html += `
+                <div class="result-block">
+                    <div class="result-label">O que fazer</div>
+                    <ul class="result-list">
+                        ${analysis.oQueFazer.map(a => `<li>${a}</li>`).join('')}
+                    </ul>
+                </div>`;
+            }
+
+            // Sugestões de resposta
+            if (analysis.sugestoesResposta && analysis.sugestoesResposta.length > 0) {
+                html += `
+                <div class="result-block sugestoes-ia">
+                    <div class="result-label">Sugestões de Resposta</div>
+                    <div class="response-cards">
+                        ${analysis.sugestoesResposta.map((r, i) => `
+                        <div class="response-card">
+                            <div class="response-text">"${r}"</div>
+                            <button class="copy-btn" onclick="copyResponse(this, '${r.replace(/'/g, "\\'")}')">Copiar</button>
+                        </div>`).join('')}
+                    </div>
+                </div>`;
+            }
+
+            // Frase âncora
+            if (analysis.fraseAncora) {
+                html += `
+                <div class="result-block frase-ancora-ia" style="text-align: center; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid #404040;">
+                    <div class="result-content" style="font-style: italic; font-size: 16px; color: #a3a3a3;">
+                        "${analysis.fraseAncora}"
+                    </div>
+                </div>`;
+            }
+
+            // Reset button
+            html += `
+            <button class="reset-btn" onclick="resetAnalysis()">
+                ${t.resetBtn || 'Analisar outra conversa'}
+            </button>`;
+
+            resultsEl.innerHTML = html;
+
+            // Add AI badge
+            const badge = document.createElement('div');
+            badge.className = 'ai-badge';
+            badge.innerHTML = '✨ Análise com IA';
+            badge.style.cssText = 'text-align: center; color: #737373; font-size: 12px; margin-bottom: 16px;';
+            resultsEl.insertBefore(badge, resultsEl.firstChild);
+        }
+
+        function copyResponse(btn, text) {
+            navigator.clipboard.writeText(text);
+            btn.textContent = 'Copiado!';
+            setTimeout(() => btn.textContent = 'Copiar', 2000);
+        }
+
+        // === ANÁLISE FALLBACK (padrões) ===
+        function showLoadingFallback() {
+            console.log('[ALPHA] Using pattern-based analysis (fallback)');
             const t = i18n[currentLang];
             const overlay = document.getElementById('loadingOverlay');
             const progress = document.getElementById('loadingProgress');
@@ -3447,14 +3786,12 @@
 
             if (!overlay || !progress || !stepEl) {
                 console.error('Loading elements not found:', { overlay, progress, stepEl });
-                // Fallback: run analysis directly without loading animation
                 analyzeConversationCore();
                 return;
             }
 
             overlay.classList.add('active');
             progress.style.width = '0%';
-            console.log('Loading overlay activated');
 
             // Step 1: Identifying patterns (0-40%)
             stepEl.textContent = t.loadingStep || 'Identificando padrões';
