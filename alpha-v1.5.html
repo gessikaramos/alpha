@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha — Clareza Emocional</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0a0a0a;
+            color: #e5e5e5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 640px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .logo {
+            font-size: 14px;
+            letter-spacing: 4px;
+            color: #737373;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .tagline {
+            font-size: 18px;
+            font-weight: 300;
+            color: #a3a3a3;
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field-label {
+            font-size: 13px;
+            color: #737373;
+            font-weight: 400;
+        }
+
+        .conversation-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 20px;
+            background: #141414;
+            border: 1px solid #262626;
+            border-radius: 12px;
+            color: #e5e5e5;
+            font-family: inherit;
+            font-size: 15px;
+            line-height: 1.7;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .conversation-input:focus {
+            outline: none;
+            border-color: #404040;
+        }
+
+        .conversation-input::placeholder {
+            color: #525252;
+        }
+
+        .question-input {
+            width: 100%;
+            padding: 16px 20px;
+            background: #141414;
+            border: 1px solid #262626;
+            border-radius: 12px;
+            color: #e5e5e5;
+            font-family: inherit;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        .question-input:focus {
+            outline: none;
+            border-color: #404040;
+        }
+
+        .question-input::placeholder {
+            color: #525252;
+        }
+
+        /* Button */
+        .analyze-btn {
+            width: 100%;
+            padding: 18px;
+            background: #e5e5e5;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .analyze-btn:hover {
+            background: #ffffff;
+        }
+
+        .analyze-btn:disabled {
+            background: #262626;
+            color: #525252;
+            cursor: not-allowed;
+        }
+
+        /* Error */
+        .error-message {
+            padding: 12px 16px;
+            background: #1a0a0a;
+            border: 1px solid #3d1515;
+            border-radius: 8px;
+            color: #f87171;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        /* Results */
+        .results-area {
+            display: none;
+        }
+
+        .results-area.active {
+            display: block;
+        }
+
+        .analysis-text {
+            background: #141414;
+            border: 1px solid #262626;
+            border-radius: 16px;
+            padding: 32px;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #d4d4d4;
+            white-space: pre-wrap;
+        }
+
+        .analysis-text p {
+            margin-bottom: 16px;
+        }
+
+        .analysis-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .closing-phrase {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #262626;
+            font-size: 14px;
+            color: #737373;
+            font-style: italic;
+        }
+
+        /* New Analysis Button */
+        .new-analysis-btn {
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            color: #737373;
+            border: 1px solid #262626;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 24px;
+        }
+
+        .new-analysis-btn:hover {
+            border-color: #404040;
+            color: #a3a3a3;
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            margin-top: 48px;
+            padding: 20px;
+            background: #0f0f0f;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #525252;
+            text-align: center;
+        }
+
+        .disclaimer a {
+            color: #737373;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .loading-dot {
+            width: 6px;
+            height: 6px;
+            background: #525252;
+            border-radius: 50%;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes pulse {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            body {
+                padding: 24px 16px;
+            }
+
+            .conversation-input {
+                min-height: 160px;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">Alpha</div>
+            <p class="tagline">Clareza sobre o que você já sabe, mas não quer ver.</p>
+        </header>
+
+        <!-- Input Area -->
+        <div class="input-area" id="inputArea">
+            <div class="field-group">
+                <label class="field-label">Cole aqui a conversa</label>
+                <textarea
+                    class="conversation-input"
+                    id="conversation"
+                    placeholder="Cole a conversa que você quer analisar. Pode ser do WhatsApp, Instagram, SMS..."
+                ></textarea>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">O que você quer entender sobre essa relação?</label>
+                <input
+                    type="text"
+                    class="question-input"
+                    id="question"
+                    placeholder="Ex: Ele está interessado? Isso é evasão? Estou insistindo demais?"
+                >
+            </div>
+
+            <div class="error-message" id="error"></div>
+
+            <button class="analyze-btn" id="analyzeBtn" onclick="analyzeConversation()">
+                Analisar
+            </button>
+        </div>
+
+        <!-- Results Area -->
+        <div class="results-area" id="resultsArea">
+            <div class="analysis-text" id="analysisText"></div>
+            <button class="new-analysis-btn" onclick="resetAnalysis()">
+                Fazer nova análise
+            </button>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer">
+            O Alpha não substitui acompanhamento profissional.
+            Se você estiver em situação de risco, ligue <a href="tel:180">180</a> (violência) ou <a href="tel:188">188</a> (CVV).
+        </div>
+    </div>
+
+    <script>
+        const ALPHA_API_URL = 'https://alpha-api.rough-night-439c.workers.dev';
+
+        async function analyzeConversation() {
+            const conversation = document.getElementById('conversation').value.trim();
+            const question = document.getElementById('question').value.trim();
+            const errorEl = document.getElementById('error');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+
+            // Validation
+            errorEl.classList.remove('active');
+
+            if (!conversation) {
+                errorEl.textContent = 'Cole a conversa que você quer analisar.';
+                errorEl.classList.add('active');
+                return;
+            }
+
+            if (conversation.length < 50) {
+                errorEl.textContent = 'A conversa precisa ter pelo menos algumas mensagens para uma análise significativa.';
+                errorEl.classList.add('active');
+                return;
+            }
+
+            if (!question) {
+                errorEl.textContent = 'Escreva sua dúvida sobre a conversa.';
+                errorEl.classList.add('active');
+                return;
+            }
+
+            // Loading state
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = '<span class="loading"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></span>';
+
+            try {
+                const response = await fetch(ALPHA_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ conversation, question })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.analysis) {
+                    displayResults(result.analysis);
+                } else {
+                    errorEl.textContent = result.message || 'Erro ao processar análise. Tente novamente.';
+                    errorEl.classList.add('active');
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.textContent = 'Analisar';
+                }
+
+            } catch (err) {
+                console.error('Error:', err);
+                errorEl.textContent = 'Erro de conexão. Verifique sua internet e tente novamente.';
+                errorEl.classList.add('active');
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = 'Analisar';
+            }
+        }
+
+        function displayResults(analysis) {
+            const analysisEl = document.getElementById('analysisText');
+
+            // Format the text with paragraphs
+            const formattedText = analysis
+                .split('\n\n')
+                .map(p => `<p>${p.trim()}</p>`)
+                .join('');
+
+            analysisEl.innerHTML = formattedText;
+
+            // Hide input, show results
+            document.getElementById('inputArea').style.display = 'none';
+            document.getElementById('resultsArea').classList.add('active');
+        }
+
+        function resetAnalysis() {
+            // Reset form
+            document.getElementById('conversation').value = '';
+            document.getElementById('question').value = '';
+            document.getElementById('error').classList.remove('active');
+
+            // Reset button
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            analyzeBtn.disabled = false;
+            analyzeBtn.textContent = 'Analisar';
+
+            // Show input, hide results
+            document.getElementById('inputArea').style.display = 'flex';
+            document.getElementById('resultsArea').classList.remove('active');
+        }
+
+        // Allow Enter to submit from question field
+        document.getElementById('question').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzeConversation();
+            }
+        });
+    </script>
+</body>
+</html>
