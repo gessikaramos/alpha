@@ -691,15 +691,15 @@
         }
 
         /* INITIAL READING STATE */
-        .initial-reading {
+        .low-confidence {
             display: none;
             max-width: 600px;
             margin: 0 auto;
         }
-        .initial-reading.active {
+        .low-confidence.active {
             display: block;
         }
-        .initial-content {
+        .low-confidence-content {
             background: linear-gradient(135deg, rgba(38, 38, 38, 0.9), rgba(23, 23, 23, 0.95));
             border: 1px solid #404040;
             border-radius: 16px;
@@ -728,45 +728,45 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        .initial-title {
+        .low-confidence-title {
             font-size: 20px;
             font-weight: 600;
             color: #fafafa;
             margin: 0 0 24px 0;
         }
-        .initial-block {
+        .low-confidence-block {
             text-align: left;
             margin-bottom: 20px;
             padding: 16px;
             background: rgba(0,0,0,0.2);
             border-radius: 8px;
         }
-        .initial-block h4 {
+        .low-confidence-block h4 {
             font-size: 14px;
             color: #a3a3a3;
             margin: 0 0 12px 0;
             font-weight: 500;
         }
-        .initial-block h4 .emoji {
+        .low-confidence-block h4 .emoji {
             margin-right: 8px;
         }
-        .initial-block ul {
+        .low-confidence-block ul {
             margin: 0;
             padding-left: 20px;
         }
-        .initial-block li {
+        .low-confidence-block li {
             color: #d4d4d4;
             font-size: 14px;
             margin-bottom: 8px;
             line-height: 1.5;
         }
-        .initial-block.attention {
+        .low-confidence-block.attention {
             border-left: 3px solid #eab308;
         }
-        .initial-block.observe {
+        .low-confidence-block.observe {
             border-left: 3px solid #3b82f6;
         }
-        .initial-ctas {
+        .low-confidence-ctas {
             display: flex;
             gap: 12px;
             justify-content: center;
@@ -1060,8 +1060,8 @@
             </div>
 
             <!-- INITIAL READING STATE -->
-            <div id="initialReading" class="initial-reading">
-                <!-- Content rendered dynamically by renderInitialReading() -->
+            <div id="lowConfidence" class="low-confidence">
+                <!-- Content rendered dynamically by renderLowConfidence() -->
             </div>
 
             <div id="results" class="results">
@@ -2310,12 +2310,12 @@
             });
         }
 
-        // ================== ANALYSIS STATE SYSTEM (v0.4.1) ==================
-        // Estados explícitos: INSUFFICIENT_DATA | INITIAL_READING | FULL_ANALYSIS
+        // ================== ANALYSIS STATE SYSTEM (v0.5.0) ==================
+        // Estados explícitos: INSUFFICIENT_DATA | LOW_CONFIDENCE | FULL_ANALYSIS
 
         const AnalysisState = {
             INSUFFICIENT_DATA: 'INSUFFICIENT_DATA',
-            INITIAL_READING: 'INITIAL_READING',
+            LOW_CONFIDENCE: 'LOW_CONFIDENCE',
             FULL_ANALYSIS: 'FULL_ANALYSIS'
         };
 
@@ -2385,10 +2385,10 @@
                 };
             }
 
-            // Se userRole === 'unknown' → máximo INITIAL_READING (não permite FULL)
+            // Se userRole === 'unknown' → máximo LOW_CONFIDENCE (não permite FULL)
             if (userRole === 'unknown') {
                 return {
-                    state: AnalysisState.INITIAL_READING,
+                    state: AnalysisState.LOW_CONFIDENCE,
                     reasons: {
                         userRoleUnknown: true,
                         note: 'Perspectiva indefinida limita análise'
@@ -2408,9 +2408,9 @@
                 };
             }
 
-            // INITIAL_READING: messageCount >= 15, daysSpan >= 3, sem commitmentEvents suficientes
+            // LOW_CONFIDENCE: messageCount >= 15, daysSpan >= 3, sem commitmentEvents suficientes
             return {
-                state: AnalysisState.INITIAL_READING,
+                state: AnalysisState.LOW_CONFIDENCE,
                 reasons: {
                     noCommitments: features.commitmentEvents < 1,
                     lowMessages: features.messageCount < 25,
@@ -2486,7 +2486,7 @@
             insufficientEl.classList.add('active');
         }
 
-        function renderInitialReading(stateResult, analysisData) {
+        function renderLowConfidence(stateResult, analysisData) {
             const isPortuguese = currentLang === 'pt';
             const f = stateResult.features;
 
@@ -2495,7 +2495,7 @@
             const loadingOverlay = document.getElementById('loadingOverlay');
             if (loadingOverlay) loadingOverlay.classList.remove('active');
 
-            console.info('[ALPHA] state: INITIAL_READING', { features: f });
+            console.info('[ALPHA] state: LOW_CONFIDENCE', { features: f });
 
             // Disclaimer obrigatório
             const disclaimer = isPortuguese
@@ -2507,19 +2507,19 @@
             const attentionPoints = analysisData.attentionPoints || [];
             const nextObserve = analysisData.nextObserve || [];
 
-            const initialEl = document.getElementById('initialReading');
+            const initialEl = document.getElementById('lowConfidence');
             initialEl.innerHTML = `
-                <div class="initial-content">
+                <div class="low-confidence-content">
                     <div class="state-disclaimer">
                         ${disclaimer}
                     </div>
 
-                    <h2 class="initial-title">
+                    <h2 class="low-confidence-title">
                         <span class="state-badge">Leitura inicial</span>
                     </h2>
 
                     ${trends.length > 0 ? `
-                    <div class="initial-block">
+                    <div class="low-confidence-block">
                         <h4><span class="emoji">📊</span> ${isPortuguese ? 'Tendências observadas' : 'Observed trends'}</h4>
                         <ul>
                             ${trends.map(t => `<li>${t}</li>`).join('')}
@@ -2528,7 +2528,7 @@
                     ` : ''}
 
                     ${attentionPoints.length > 0 ? `
-                    <div class="initial-block attention">
+                    <div class="low-confidence-block attention">
                         <h4><span class="emoji">👀</span> ${isPortuguese ? 'Pontos de atenção' : 'Points of attention'}</h4>
                         <ul>
                             ${attentionPoints.map(a => `<li>${a}</li>`).join('')}
@@ -2537,7 +2537,7 @@
                     ` : ''}
 
                     ${nextObserve.length > 0 ? `
-                    <div class="initial-block observe">
+                    <div class="low-confidence-block observe">
                         <h4><span class="emoji">🔍</span> ${isPortuguese ? 'O que observar daqui pra frente' : 'What to observe going forward'}</h4>
                         <ul>
                             ${nextObserve.map(n => `<li>${n}</li>`).join('')}
@@ -2545,7 +2545,7 @@
                     </div>
                     ` : ''}
 
-                    <div class="initial-ctas">
+                    <div class="low-confidence-ctas">
                         <button class="insufficient-btn primary" onclick="addMoreData()">
                             ${isPortuguese ? 'Adicionar mais dados' : 'Add more data'}
                         </button>
@@ -2569,7 +2569,7 @@
         function addMoreData() {
             // Voltar para o formulário mantendo os dados
             document.getElementById('insufficientData').classList.remove('active');
-            document.getElementById('initialReading').classList.remove('active');
+            document.getElementById('lowConfidence').classList.remove('active');
             document.getElementById('inputArea').style.display = 'block';
             // Focar no textarea
             document.getElementById('conversation').focus();
@@ -2578,7 +2578,7 @@
         // ================== CORE ANALYSIS ==================
 
         function generateInitialReadingData(text, lang) {
-            // Gera tendências, pontos de atenção e próximos passos para INITIAL_READING
+            // Gera tendências, pontos de atenção e próximos passos para LOW_CONFIDENCE
             // LINGUAGEM NÃO CONCLUSIVA - apenas observações
             const isPortuguese = lang === 'pt';
             const trends = [];
@@ -2629,7 +2629,7 @@
             const text = document.getElementById('conversation').value.trim();
             const lang = currentLang;
 
-            // ========== SISTEMA DE ESTADOS (v0.4.1) ==========
+            // ========== SISTEMA DE ESTADOS (v0.5.0) ==========
             const features = extractConversationFeatures(text);
             const stateResult = determineAnalysisState(features);
 
@@ -2645,10 +2645,10 @@
                 return;
             }
 
-            // INITIAL_READING → Apenas tendências, sem conclusões
-            if (stateResult.state === AnalysisState.INITIAL_READING) {
+            // LOW_CONFIDENCE → Apenas tendências, sem conclusões
+            if (stateResult.state === AnalysisState.LOW_CONFIDENCE) {
                 const initialData = generateInitialReadingData(text, lang);
-                renderInitialReading(stateResult, initialData);
+                renderLowConfidence(stateResult, initialData);
                 return;
             }
 
@@ -3085,7 +3085,7 @@
             document.getElementById('error').classList.remove('active');
             document.getElementById('triagemRisco').classList.remove('active');
             document.getElementById('insufficientData').classList.remove('active');
-            document.getElementById('initialReading').classList.remove('active');
+            document.getElementById('lowConfidence').classList.remove('active');
             document.getElementById('feedbackForm').style.display = 'block';
             document.getElementById('feedbackSuccess').classList.remove('active');
             document.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('selected'));
@@ -3277,50 +3277,25 @@
             analysisState.text = text;
             analysisState.step = 'initial';
 
-            if (inputMode === 'text') {
-                // Step 1: Check for participant names
-                detectedParticipants = detectParticipantsFromText(text);
-                if (detectedParticipants.length >= 2) {
-                    analysisState.step = 'participant';
-                    showParticipantModal(detectedParticipants);
-                    return;
-                }
+            // FLUXO SIMPLIFICADO v0.5.0:
+            // - userRole já foi coletado no formulário (obrigatório)
+            // - Nenhum modal adicional para texto
+            // - Image mode: apenas sideModal para lado das mensagens
 
-                // Step 2: Check for low history
-                const msgCount = countMessages(text);
-                if (msgCount < 12) {
-                    analysisState.step = 'lowHistory';
-                    analysisState.lowHistory = true;
-                    showLowHistoryModal();
-                    return;
-                }
-            } else {
-                // Image mode: show side question
+            if (inputMode === 'image') {
+                // Image mode: precisa saber lado das mensagens nos prints
                 analysisState.step = 'side';
                 showSideModal();
                 return;
             }
 
-            // No modals needed, continue directly
-            continueAnalysis();
+            // Text mode: direto para análise (sem modais)
+            runAnalysis();
         }
 
         function continueAnalysis() {
-            console.log('continueAnalysis called', { step: analysisState.step, inputMode, lowHistory: analysisState.lowHistory });
-
-            // If we came from participant modal and still need low history check
-            if (analysisState.step === 'participant' && inputMode === 'text') {
-                const msgCount = countMessages(analysisState.text);
-                if (msgCount < 12 && !analysisState.lowHistory) {
-                    analysisState.step = 'lowHistory';
-                    analysisState.lowHistory = true;
-                    showLowHistoryModal();
-                    return;
-                }
-            }
-
-            // Run the actual analysis
-            console.log('Calling runAnalysis');
+            // Chamado após sideModal (image mode)
+            console.info('[ALPHA] continueAnalysis from modal');
             runAnalysis();
         }
 
@@ -3413,12 +3388,12 @@
 
     <footer>
         Made by <a href="https://lolalab.studio" target="_blank">Lola Lab</a>
-        <span class="build-version">v0.4.1</span>
+        <span class="build-version">v0.5.0</span>
     </footer>
 
     <script>
         // BUILD_VERSION for debugging
-        const BUILD_VERSION = 'v0.4.1';
+        const BUILD_VERSION = 'v0.5.0';
         const BUILD_DATE = '2026-02-05';
         console.info('[ALPHA] BUILD_VERSION:', BUILD_VERSION, BUILD_DATE);
     </script>
