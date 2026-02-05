@@ -988,6 +988,15 @@
                     </div>
 
                     <div class="context-field">
+                        <label data-i18n="userRoleLabel">Quem é você nessa conversa? *</label>
+                        <div class="context-options" data-context="userRole">
+                            <span class="context-option" data-value="initiator" data-i18n="userRoleInitiator">Sou quem iniciou a maioria das mensagens</span>
+                            <span class="context-option" data-value="responder" data-i18n="userRoleResponder">Sou a outra pessoa</span>
+                            <span class="context-option" data-value="unknown" data-i18n="userRoleUnknown">Não sei / mensagens misturadas</span>
+                        </div>
+                    </div>
+
+                    <div class="context-field">
                         <label data-i18n="relationLabel">Tipo de vínculo</label>
                         <div class="context-options" data-context="relationType">
                             <span class="context-option" data-value="ficante" data-i18n="relationFicante">Ficante</span>
@@ -1216,7 +1225,7 @@
         let currentLang = 'pt';
         let inputMode = 'text';
         let uploadedImages = [];
-        let contextValues = { objective: null, relationType: null, platform: null, initiative: null, frequency: null, emotional: null };
+        let contextValues = { objective: null, userRole: null, relationType: null, platform: null, initiative: null, frequency: null, emotional: null };
         let detectedPattern = '';
 
         // Analysis state variables (global scope)
@@ -1245,6 +1254,10 @@
                 objEvasao: 'Identificar evasão',
                 objInsistir: 'Decidir: insistir ou recuar',
                 objRedflags: 'Detectar red flags',
+                userRoleLabel: 'Quem é você nessa conversa? *',
+                userRoleInitiator: 'Sou quem iniciou a maioria das mensagens',
+                userRoleResponder: 'Sou a outra pessoa',
+                userRoleUnknown: 'Não sei / mensagens misturadas',
                 relationLabel: 'Tipo de vínculo',
                 relationFicante: 'Ficante',
                 relationDates: 'Dates / conhecendo',
@@ -1277,6 +1290,7 @@
                 errorEmpty: 'Cole a conversa ou envie prints para começar.',
                 errorShort: 'Cole uma conversa mais completa ou envie mais prints.',
                 errorNoDoubt: 'Selecione o objetivo da análise.',
+                errorNoUserRole: 'Indique quem é você nessa conversa.',
                 diagTitle: 'Diagnóstico Central',
                 patternTitle: 'Padrão Recorrente',
                 riskTitle: 'Risco Real',
@@ -1348,6 +1362,10 @@
                 objEvasao: 'Identify avoidance',
                 objInsistir: 'Decide: push or pull back',
                 objRedflags: 'Detect red flags',
+                userRoleLabel: 'Who are you in this conversation? *',
+                userRoleInitiator: 'I started most of the messages',
+                userRoleResponder: 'I am the other person',
+                userRoleUnknown: 'Not sure / mixed messages',
                 relationLabel: 'Type of bond',
                 relationFicante: 'Casual / hookup',
                 relationDates: 'Dating / getting to know',
@@ -1380,6 +1398,7 @@
                 errorEmpty: 'Paste the conversation or upload screenshots to start.',
                 errorShort: 'Paste a more complete conversation or upload more screenshots.',
                 errorNoDoubt: 'Select the analysis objective.',
+                errorNoUserRole: 'Indicate who you are in this conversation.',
                 diagTitle: 'Central Diagnosis',
                 patternTitle: 'Recurring Pattern',
                 riskTitle: 'Real Risk',
@@ -2291,7 +2310,7 @@
             });
         }
 
-        // ================== ANALYSIS STATE SYSTEM (v0.4.0) ==================
+        // ================== ANALYSIS STATE SYSTEM (v0.4.1) ==================
         // Estados explícitos: INSUFFICIENT_DATA | INITIAL_READING | FULL_ANALYSIS
 
         const AnalysisState = {
@@ -2349,6 +2368,9 @@
         }
 
         function determineAnalysisState(features) {
+            // Pegar userRole do contexto
+            const userRole = contextValues.userRole;
+
             // INSUFFICIENT_DATA: messageCount < 15 OR daysSpan < 3 OR não bilateral
             if (features.messageCount < 15 || features.daysSpan < 3 || !features.isBilateral) {
                 return {
@@ -2358,16 +2380,31 @@
                         lowTimeSpan: features.daysSpan < 3,
                         notBilateral: !features.isBilateral
                     },
-                    features
+                    features,
+                    userRole
                 };
             }
 
-            // FULL_ANALYSIS: messageCount >= 25 AND daysSpan >= 7 AND commitmentEvents >= 1
+            // Se userRole === 'unknown' → máximo INITIAL_READING (não permite FULL)
+            if (userRole === 'unknown') {
+                return {
+                    state: AnalysisState.INITIAL_READING,
+                    reasons: {
+                        userRoleUnknown: true,
+                        note: 'Perspectiva indefinida limita análise'
+                    },
+                    features,
+                    userRole
+                };
+            }
+
+            // FULL_ANALYSIS: messageCount >= 25 AND daysSpan >= 7 AND commitmentEvents >= 1 AND userRole definido
             if (features.messageCount >= 25 && features.daysSpan >= 7 && features.commitmentEvents >= 1) {
                 return {
                     state: AnalysisState.FULL_ANALYSIS,
                     reasons: {},
-                    features
+                    features,
+                    userRole
                 };
             }
 
@@ -2379,7 +2416,8 @@
                     lowMessages: features.messageCount < 25,
                     lowTimeSpan: features.daysSpan < 7
                 },
-                features
+                features,
+                userRole
             };
         }
 
@@ -2591,7 +2629,7 @@
             const text = document.getElementById('conversation').value.trim();
             const lang = currentLang;
 
-            // ========== SISTEMA DE ESTADOS (v0.4.0) ==========
+            // ========== SISTEMA DE ESTADOS (v0.4.1) ==========
             const features = extractConversationFeatures(text);
             const stateResult = determineAnalysisState(features);
 
@@ -3055,7 +3093,7 @@
             document.getElementById('feedbackAccuracy').value = '5';
             uploadedImages = [];
             renderPreview();
-            contextValues = { objective: null, relationType: null, platform: null, initiative: null, frequency: null, emotional: null };
+            contextValues = { objective: null, userRole: null, relationType: null, platform: null, initiative: null, frequency: null, emotional: null };
             document.querySelectorAll('.context-option').forEach(o => o.classList.remove('selected'));
 
             // Reset modal states
@@ -3209,6 +3247,12 @@
             // Basic validation
             if (!contextValues.objective) {
                 errorEl.textContent = t.errorNoDoubt;
+                errorEl.classList.add('active');
+                return;
+            }
+
+            if (!contextValues.userRole) {
+                errorEl.textContent = t.errorNoUserRole;
                 errorEl.classList.add('active');
                 return;
             }
@@ -3369,12 +3413,12 @@
 
     <footer>
         Made by <a href="https://lolalab.studio" target="_blank">Lola Lab</a>
-        <span class="build-version">v0.4.0</span>
+        <span class="build-version">v0.4.1</span>
     </footer>
 
     <script>
         // BUILD_VERSION for debugging
-        const BUILD_VERSION = 'v0.4.0';
+        const BUILD_VERSION = 'v0.4.1';
         const BUILD_DATE = '2026-02-05';
         console.info('[ALPHA] BUILD_VERSION:', BUILD_VERSION, BUILD_DATE);
     </script>
