@@ -983,24 +983,25 @@
         <main>
             <div id="inputArea">
                 <!-- Input Mode Toggle -->
-                <div class="input-mode-toggle">
+                <!-- Modo imagem desabilitado temporariamente - só texto por enquanto -->
+                <div class="input-mode-toggle" style="display: none;">
                     <button class="mode-btn active" id="textModeBtn" onclick="setInputMode('text')">
                         <span class="icon">📝</span>
                         <span class="label" data-i18n="textModeLabel">Colar texto</span>
                         <span class="hint" data-i18n="textModeHint">rápido</span>
                     </button>
-                    <button class="mode-btn" id="imageModeBtn" onclick="setInputMode('image')">
+                    <button class="mode-btn disabled" id="imageModeBtn" disabled title="Em breve">
                         <span class="icon">📷</span>
                         <span class="label" data-i18n="imageModeLabel">Enviar prints</span>
-                        <span class="hint" data-i18n="imageModeHint">mais fácil</span>
+                        <span class="hint">em breve</span>
                     </button>
                 </div>
 
                 <!-- Text Input -->
                 <div class="input-section text-input-wrapper" id="textInputWrapper">
-                    <label id="inputLabel">Cole a conversa abaixo</label>
-                    <textarea id="conversation" placeholder=""></textarea>
-                    <p class="microcopy" data-i18n="textMicrocopy">Cole como vier. A gente organiza.</p>
+                    <label id="inputLabel">Cole as mensagens do WhatsApp, Instagram ou iMessage</label>
+                    <textarea id="conversation" placeholder="Abra a conversa no app → selecione as mensagens → copie → cole aqui"></textarea>
+                    <p class="microcopy" data-i18n="textMicrocopy">Quanto mais mensagens, melhor a análise. Cole direto do app.</p>
                 </div>
 
                 <!-- Image Upload -->
@@ -1282,9 +1283,9 @@
                 textModeHint: 'rápido',
                 imageModeLabel: 'Enviar prints',
                 imageModeHint: 'mais fácil',
-                inputLabel: 'Cole a conversa abaixo',
-                placeholder: 'Cole aqui a conversa que você quer analisar...',
-                textMicrocopy: 'Cole como vier. A gente organiza.',
+                inputLabel: 'Cole as mensagens do WhatsApp, Instagram ou iMessage',
+                placeholder: 'Abra a conversa no app → selecione as mensagens → copie → cole aqui\n\nExemplo do WhatsApp:\n[05/02/26, 14:30] João: oi, tudo bem?\n[05/02/26, 14:32] Você: tudo! e vc?',
+                textMicrocopy: 'Quanto mais mensagens, melhor a análise. Cole direto do app.',
                 uploadText: 'Clique ou arraste até 10 prints',
                 uploadHint: 'Imagens não são armazenadas após análise.',
                 contextTitle: 'Contexto rápido',
@@ -1390,9 +1391,9 @@
                 textModeHint: 'fast',
                 imageModeLabel: 'Upload screenshots',
                 imageModeHint: 'easier',
-                inputLabel: 'Paste the conversation below',
-                placeholder: 'Paste the conversation you want to analyze here...',
-                textMicrocopy: 'Paste as is. We\'ll organize it.',
+                inputLabel: 'Paste messages from WhatsApp, Instagram or iMessage',
+                placeholder: 'Open chat in app → select messages → copy → paste here\n\nWhatsApp example:\n[02/05/26, 2:30 PM] John: hey, how are you?\n[02/05/26, 2:32 PM] You: good! and you?',
+                textMicrocopy: 'More messages = better analysis. Paste directly from the app.',
                 uploadText: 'Click or drag up to 10 screenshots',
                 uploadHint: 'Images aren\'t stored after analysis.',
                 contextTitle: 'Quick context',
