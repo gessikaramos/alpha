@@ -615,11 +615,51 @@
             color: #fafafa;
             margin: 0 0 16px 0;
         }
-        .insufficient-main {
-            font-size: 15px;
+        .insufficient-subtitle {
+            font-size: 14px;
             color: #a3a3a3;
             margin: 0 0 24px 0;
-            line-height: 1.6;
+        }
+        .insuff-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .insuff-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: left;
+        }
+        .insuff-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .insuff-card-icon {
+            font-size: 20px;
+        }
+        .insuff-card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fafafa;
+        }
+        .insuff-card-status {
+            font-size: 13px;
+            color: #ef4444;
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .insuff-card-tip {
+            font-size: 13px;
+            color: #a3a3a3;
+            line-height: 1.5;
         }
         .insufficient-reasons,
         .insufficient-help {
@@ -2310,7 +2350,7 @@
             });
         }
 
-        // ================== ANALYSIS STATE SYSTEM (v0.5.1) ==================
+        // ================== ANALYSIS STATE SYSTEM (v0.5.2) ==================
         // Estados explícitos: INSUFFICIENT_DATA | LOW_CONFIDENCE | FULL_ANALYSIS
 
         const AnalysisState = {
@@ -2339,10 +2379,31 @@
                 daysSpan = 1;
             }
 
-            // 3. Eventos de compromisso (convites, encontros, planos)
-            const commitmentPatterns = /vamos (sair|jantar|almoçar|nos ver|marcar)|bora |encontro|encontrar|vem (cá|aqui|pra cá)|te busco|passo aí|vou aí|marcado|desmarcou|cancelou|adiou|não (vai dar|dá|posso)|let'?s (meet|go|hang)|meet up|come over|pick you up|cancelled|postponed/gi;
-            const commitmentMatches = text.match(commitmentPatterns) || [];
-            const commitmentEvents = commitmentMatches.length;
+            // 3. Eventos de compromisso (convites, encontros, planos, conversas DTR)
+            const commitmentPatterns = [
+                // Convites e encontros
+                /vamos (sair|jantar|almoçar|nos ver|marcar)/gi,
+                /bora |encontro|encontrar|vem (cá|aqui|pra cá)/gi,
+                /te busco|passo aí|vou aí|marcado|desmarcou|cancelou|adiou/gi,
+                /não (vai dar|dá|posso)/gi,
+                /let'?s (meet|go|hang)|meet up|come over|pick you up|cancelled|postponed/gi,
+                // Conversas DTR (Define The Relationship)
+                /futuro (real|com|em nós|juntos|da relação|da gente)/gi,
+                /(construir|ter) algo (sério|real|concreto)/gi,
+                /onde (isso|a gente|nós) (vai|vamos|está indo)/gi,
+                /(definir|saber) o que (somos|a gente é|temos)/gi,
+                /relacionamento (sério|indefinido|aberto)/gi,
+                /compromisso|comprometer|exclusiv/gi,
+                /namorar|namoro|casar|morar junto/gi,
+                /o que você (quer|sente|pensa) (sobre nós|de mim|comigo)/gi,
+                /não (quero|quer) (te iludir|perder tempo|ficar assim)/gi,
+                /precisamos (conversar|falar) sobre (nós|a gente|isso)/gi
+            ];
+            let commitmentEvents = 0;
+            for (const pattern of commitmentPatterns) {
+                const matches = text.match(pattern) || [];
+                commitmentEvents += matches.length;
+            }
 
             // 4. Fonte (texto colado vs OCR/prints)
             const source = inputMode === 'image' ? 'ocr' : 'text';
@@ -2466,58 +2527,87 @@
             const loadingOverlay = document.getElementById('loadingOverlay');
             if (loadingOverlay) loadingOverlay.classList.remove('active');
 
-            // Lista OBJETIVA do que falta (sem linguagem emocional)
-            const missing = [];
+            // Construir cards didáticos para cada problema
+            const cards = [];
+
             if (r.lowMessages) {
-                missing.push(isPortuguese
-                    ? `Mínimo de 15 mensagens (atual: ${f.messageCount})`
-                    : `Minimum 15 messages (current: ${f.messageCount})`);
-            }
-            if (r.lowTimeSpan) {
-                missing.push(isPortuguese
-                    ? `Mínimo de 3 dias de conversa (atual: ~${f.daysSpan})`
-                    : `Minimum 3 days of conversation (current: ~${f.daysSpan})`);
-            }
-            if (r.notBilateral) {
-                const detected = f.detectedSenders && f.detectedSenders.length > 0
-                    ? f.detectedSenders.join(', ')
-                    : (isPortuguese ? 'nenhum' : 'none');
-                missing.push(isPortuguese
-                    ? `Troca bilateral não detectada (participantes: ${detected}, msgs: ${f.euMessages}/${f.outroMessages})`
-                    : `Bilateral exchange not detected (participants: ${detected}, msgs: ${f.euMessages}/${f.outroMessages})`);
+                cards.push({
+                    icon: '💬',
+                    title: isPortuguese ? 'Conversa muito curta' : 'Conversation too short',
+                    status: isPortuguese
+                        ? `${f.messageCount} mensagens (mínimo: 15)`
+                        : `${f.messageCount} messages (minimum: 15)`,
+                    tip: isPortuguese
+                        ? 'Cole mais mensagens da conversa. Quanto mais contexto, melhor a análise.'
+                        : 'Paste more messages from the conversation. More context means better analysis.'
+                });
             }
 
-            console.info('[ALPHA] state: INSUFFICIENT_DATA', { missing, features: f });
+            if (r.lowTimeSpan) {
+                cards.push({
+                    icon: '📅',
+                    title: isPortuguese ? 'Período muito curto' : 'Time period too short',
+                    status: isPortuguese
+                        ? `~${f.daysSpan} dia(s) (mínimo: 3)`
+                        : `~${f.daysSpan} day(s) (minimum: 3)`,
+                    tip: isPortuguese
+                        ? 'Inclua mensagens de dias diferentes para ver padrões ao longo do tempo.'
+                        : 'Include messages from different days to see patterns over time.'
+                });
+            }
+
+            if (r.notBilateral) {
+                const detected = f.detectedSenders && f.detectedSenders.length > 0
+                    ? f.detectedSenders.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' e ')
+                    : null;
+                cards.push({
+                    icon: '👥',
+                    title: isPortuguese ? 'Participantes não identificados' : 'Participants not identified',
+                    status: detected
+                        ? (isPortuguese ? `Detectados: ${detected}` : `Detected: ${detected}`)
+                        : (isPortuguese ? 'Nenhum participante detectado' : 'No participants detected'),
+                    tip: isPortuguese
+                        ? 'Use o formato do WhatsApp ou adicione "Eu:" e "Ele/Ela:" antes das mensagens.'
+                        : 'Use WhatsApp format or add "Me:" and "Him/Her:" before messages.'
+                });
+            }
+
+            console.info('[ALPHA] state: INSUFFICIENT_DATA', { cards, features: f });
+
+            const cardsHTML = cards.map(c => `
+                <div class="insuff-card">
+                    <div class="insuff-card-header">
+                        <span class="insuff-card-icon">${c.icon}</span>
+                        <span class="insuff-card-title">${c.title}</span>
+                    </div>
+                    <div class="insuff-card-status">${c.status}</div>
+                    <div class="insuff-card-tip">💡 ${c.tip}</div>
+                </div>
+            `).join('');
 
             const insufficientEl = document.getElementById('insufficientData');
             insufficientEl.innerHTML = `
                 <div class="insufficient-content">
                     <h2 class="insufficient-title">
-                        ${isPortuguese ? 'Dados insuficientes para análise' : 'Insufficient data for analysis'}
+                        ${isPortuguese ? 'Precisamos de mais informação' : 'We need more information'}
                     </h2>
+                    <p class="insufficient-subtitle">
+                        ${isPortuguese
+                            ? 'Para uma análise confiável, ajuste o seguinte:'
+                            : 'For a reliable analysis, please adjust the following:'}
+                    </p>
 
-                    <div class="insufficient-reasons">
-                        <h4>${isPortuguese ? 'O que falta:' : 'What\'s missing:'}</h4>
-                        <ul>
-                            ${missing.map(m => `<li>${m}</li>`).join('')}
-                        </ul>
+                    <div class="insuff-cards">
+                        ${cardsHTML}
                     </div>
 
                     <div class="insufficient-ctas">
                         <button class="insufficient-btn primary" onclick="addMoreData()">
-                            ${isPortuguese ? 'Adicionar mais dados' : 'Add more data'}
+                            ${isPortuguese ? 'Voltar e ajustar' : 'Go back and adjust'}
                         </button>
                         <button class="insufficient-btn secondary" onclick="resetAnalysis()">
-                            ${isPortuguese ? 'Analisar outra conversa' : 'Analyze another conversation'}
+                            ${isPortuguese ? 'Começar do zero' : 'Start over'}
                         </button>
-                    </div>
-
-                    <div class="insufficient-meta">
-                        <small>
-                            ${isPortuguese ? 'Mensagens:' : 'Messages:'} ${f.messageCount} |
-                            ${isPortuguese ? 'Dias:' : 'Days:'} ~${f.daysSpan} |
-                            ${isPortuguese ? 'Eventos:' : 'Events:'} ${f.commitmentEvents}
-                        </small>
                     </div>
                 </div>
             `;
@@ -2667,7 +2757,7 @@
             const text = document.getElementById('conversation').value.trim();
             const lang = currentLang;
 
-            // ========== SISTEMA DE ESTADOS (v0.5.1) ==========
+            // ========== SISTEMA DE ESTADOS (v0.5.2) ==========
             const features = extractConversationFeatures(text);
             const stateResult = determineAnalysisState(features);
 
@@ -3315,7 +3405,7 @@
             analysisState.text = text;
             analysisState.step = 'initial';
 
-            // FLUXO SIMPLIFICADO v0.5.1:
+            // FLUXO SIMPLIFICADO v0.5.2:
             // - userRole já foi coletado no formulário (obrigatório)
             // - Nenhum modal adicional para texto
             // - Image mode: apenas sideModal para lado das mensagens
@@ -3426,12 +3516,12 @@
 
     <footer>
         Made by <a href="https://lolalab.studio" target="_blank">Lola Lab</a>
-        <span class="build-version">v0.5.1</span>
+        <span class="build-version">v0.5.2</span>
     </footer>
 
     <script>
         // BUILD_VERSION for debugging
-        const BUILD_VERSION = 'v0.5.1';
+        const BUILD_VERSION = 'v0.5.2';
         const BUILD_DATE = '2026-02-05';
         console.info('[ALPHA] BUILD_VERSION:', BUILD_VERSION, BUILD_DATE);
     </script>
