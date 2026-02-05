@@ -690,6 +690,89 @@
             font-family: monospace;
         }
 
+        /* INITIAL READING STATE */
+        .initial-reading {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .initial-reading.active {
+            display: block;
+        }
+        .initial-content {
+            background: linear-gradient(135deg, rgba(38, 38, 38, 0.9), rgba(23, 23, 23, 0.95));
+            border: 1px solid #404040;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+        }
+        .state-disclaimer {
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #eab308;
+            margin-bottom: 24px;
+            text-align: left;
+            line-height: 1.5;
+        }
+        .state-badge {
+            display: inline-block;
+            background: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .initial-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fafafa;
+            margin: 0 0 24px 0;
+        }
+        .initial-block {
+            text-align: left;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        .initial-block h4 {
+            font-size: 14px;
+            color: #a3a3a3;
+            margin: 0 0 12px 0;
+            font-weight: 500;
+        }
+        .initial-block h4 .emoji {
+            margin-right: 8px;
+        }
+        .initial-block ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .initial-block li {
+            color: #d4d4d4;
+            font-size: 14px;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .initial-block.attention {
+            border-left: 3px solid #eab308;
+        }
+        .initial-block.observe {
+            border-left: 3px solid #3b82f6;
+        }
+        .initial-ctas {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
         /* Legal Section */
         .legal-section {
             text-align: center;
@@ -962,9 +1045,14 @@
                 <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysisFlow()">Analisar</button>
             </div>
 
-            <!-- INSUFFICIENT DATA STATE (Confidence Gate) -->
+            <!-- INSUFFICIENT DATA STATE -->
             <div id="insufficientData" class="insufficient-data">
                 <!-- Content rendered dynamically by renderInsufficientData() -->
+            </div>
+
+            <!-- INITIAL READING STATE -->
+            <div id="initialReading" class="initial-reading">
+                <!-- Content rendered dynamically by renderInitialReading() -->
             </div>
 
             <div id="results" class="results">
@@ -2203,7 +2291,14 @@
             });
         }
 
-        // ================== CONFIDENCE GATE ==================
+        // ================== ANALYSIS STATE SYSTEM (v0.4.0) ==================
+        // Estados explícitos: INSUFFICIENT_DATA | INITIAL_READING | FULL_ANALYSIS
+
+        const AnalysisState = {
+            INSUFFICIENT_DATA: 'INSUFFICIENT_DATA',
+            INITIAL_READING: 'INITIAL_READING',
+            FULL_ANALYSIS: 'FULL_ANALYSIS'
+        };
 
         function extractConversationFeatures(text) {
             const lines = text.split('\n').filter(l => l.trim());
@@ -2212,15 +2307,13 @@
             const messageCount = lines.length;
 
             // 2. Janela temporal (detectar datas ou inferir)
-            // Padrões de data: dd/mm, dd/mm/yyyy, "ontem", "semana passada", etc.
             const datePatterns = /(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)|(\d{1,2}\s+de\s+\w+)|(ontem|anteontem|semana passada|mês passado|há \d+ dias|há \d+ semanas)/gi;
             const datesFound = text.match(datePatterns) || [];
-            // Se encontrou múltiplas datas, assume janela maior; senão, inferir pelo tamanho
             let daysSpan = 0;
             if (datesFound.length >= 2) {
-                daysSpan = 7; // Assume pelo menos 7 dias se há múltiplas referências temporais
+                daysSpan = 7;
             } else if (messageCount > 50) {
-                daysSpan = 7; // Conversas longas provavelmente abrangem vários dias
+                daysSpan = 7;
             } else if (messageCount > 30) {
                 daysSpan = 3;
             } else {
@@ -2233,109 +2326,104 @@
             const commitmentEvents = commitmentMatches.length;
 
             // 4. Fonte (texto colado vs OCR/prints)
-            // Se inputMode === 'image', é OCR = baixa confiança
             const source = inputMode === 'image' ? 'ocr' : 'text';
+
+            // 5. Detecção de troca bilateral (ambas as partes falam)
+            // Padrões: "Eu:", "Ele:", "Ela:", "Nome:", mensagens alternadas
+            const euPattern = /^(eu|me|minha?|i|my)[\s:]/gim;
+            const outroPattern = /^(ele|ela|você|vc|tu|nome|he|she|they|him|her)[\s:]/gim;
+            const euMatches = text.match(euPattern) || [];
+            const outroMatches = text.match(outroPattern) || [];
+            // Considera bilateral se ambos têm pelo menos 3 mensagens cada
+            const isBilateral = euMatches.length >= 3 && outroMatches.length >= 3;
 
             return {
                 messageCount,
                 daysSpan,
                 commitmentEvents,
-                source
+                source,
+                isBilateral,
+                euMessages: euMatches.length,
+                outroMessages: outroMatches.length
             };
         }
 
-        function checkConfidenceGate(features) {
-            const hasMinMessages = features.messageCount >= 25;
-            const hasTimeWindow = features.daysSpan >= 7;
-            const hasCommitment = features.commitmentEvents > 0;
-            const sourceReliable = features.source !== 'ocr';
+        function determineAnalysisState(features) {
+            // INSUFFICIENT_DATA: messageCount < 15 OR daysSpan < 3 OR não bilateral
+            if (features.messageCount < 15 || features.daysSpan < 3 || !features.isBilateral) {
+                return {
+                    state: AnalysisState.INSUFFICIENT_DATA,
+                    reasons: {
+                        lowMessages: features.messageCount < 15,
+                        lowTimeSpan: features.daysSpan < 3,
+                        notBilateral: !features.isBilateral
+                    },
+                    features
+                };
+            }
 
-            const canAnalyze = hasMinMessages && hasTimeWindow && hasCommitment && sourceReliable;
+            // FULL_ANALYSIS: messageCount >= 25 AND daysSpan >= 7 AND commitmentEvents >= 1
+            if (features.messageCount >= 25 && features.daysSpan >= 7 && features.commitmentEvents >= 1) {
+                return {
+                    state: AnalysisState.FULL_ANALYSIS,
+                    reasons: {},
+                    features
+                };
+            }
 
+            // INITIAL_READING: messageCount >= 15, daysSpan >= 3, sem commitmentEvents suficientes
             return {
-                canAnalyze,
-                hasMinMessages,
-                hasTimeWindow,
-                hasCommitment,
-                sourceReliable,
+                state: AnalysisState.INITIAL_READING,
+                reasons: {
+                    noCommitments: features.commitmentEvents < 1,
+                    lowMessages: features.messageCount < 25,
+                    lowTimeSpan: features.daysSpan < 7
+                },
                 features
             };
         }
 
-        function renderInsufficientData(gateResult) {
-            const t = i18n[currentLang];
+        function renderInsufficientData(stateResult) {
             const isPortuguese = currentLang === 'pt';
+            const f = stateResult.features;
+            const r = stateResult.reasons;
 
             // Esconder área de input e loading
             document.getElementById('inputArea').style.display = 'none';
             const loadingOverlay = document.getElementById('loadingOverlay');
             if (loadingOverlay) loadingOverlay.classList.remove('active');
 
-            // Construir motivos dinâmicos
-            const reasons = [];
-            if (!gateResult.hasMinMessages) {
-                reasons.push(isPortuguese
-                    ? 'Conversa curta demais para inferir padrões'
-                    : 'Conversation too short to infer patterns');
+            // Lista OBJETIVA do que falta (sem linguagem emocional)
+            const missing = [];
+            if (r.lowMessages) {
+                missing.push(isPortuguese
+                    ? `Mínimo de 15 mensagens (atual: ${f.messageCount})`
+                    : `Minimum 15 messages (current: ${f.messageCount})`);
             }
-            if (!gateResult.hasTimeWindow) {
-                reasons.push(isPortuguese
-                    ? 'Intervalo temporal insuficiente'
-                    : 'Insufficient time span');
+            if (r.lowTimeSpan) {
+                missing.push(isPortuguese
+                    ? `Mínimo de 3 dias de conversa (atual: ~${f.daysSpan})`
+                    : `Minimum 3 days of conversation (current: ~${f.daysSpan})`);
             }
-            if (!gateResult.hasCommitment) {
-                reasons.push(isPortuguese
-                    ? 'Ausência de eventos concretos (convites, encontros, decisões)'
-                    : 'No concrete events (invites, meetings, decisions)');
-            }
-            if (!gateResult.sourceReliable) {
-                reasons.push(isPortuguese
-                    ? 'Fonte com baixa confiabilidade (prints ou OCR)'
-                    : 'Low reliability source (screenshots or OCR)');
+            if (r.notBilateral) {
+                missing.push(isPortuguese
+                    ? `Troca bilateral (você: ${f.euMessages}, outro: ${f.outroMessages} mensagens identificadas)`
+                    : `Bilateral exchange (you: ${f.euMessages}, other: ${f.outroMessages} messages identified)`);
             }
 
-            // Construir lista de ajuda
-            const helpItems = [];
-            if (!gateResult.hasMinMessages || !gateResult.hasTimeWindow) {
-                helpItems.push(isPortuguese
-                    ? 'Mais mensagens ou um período maior da conversa'
-                    : 'More messages or a longer period of conversation');
-            }
-            if (!gateResult.hasCommitment) {
-                helpItems.push(isPortuguese
-                    ? 'Menção clara a convites, encontros ou cancelamentos'
-                    : 'Clear mention of invites, meetings or cancellations');
-            }
-            if (!gateResult.sourceReliable) {
-                helpItems.push(isPortuguese
-                    ? 'Texto original da conversa (não prints)'
-                    : 'Original conversation text (not screenshots)');
-            }
+            console.info('[ALPHA] state: INSUFFICIENT_DATA', { missing, features: f });
 
-            // Renderizar estado
             const insufficientEl = document.getElementById('insufficientData');
             insufficientEl.innerHTML = `
                 <div class="insufficient-content">
                     <h2 class="insufficient-title">
-                        ${isPortuguese ? 'Leitura inicial (dados insuficientes)' : 'Initial reading (insufficient data)'}
+                        ${isPortuguese ? 'Dados insuficientes para análise' : 'Insufficient data for analysis'}
                     </h2>
-                    <p class="insufficient-main">
-                        ${isPortuguese
-                            ? 'Não há informação suficiente para identificar padrões com segurança.'
-                            : 'There is not enough information to safely identify patterns.'}
-                    </p>
 
                     <div class="insufficient-reasons">
-                        <h4>${isPortuguese ? 'Motivos:' : 'Reasons:'}</h4>
+                        <h4>${isPortuguese ? 'O que falta:' : 'What\'s missing:'}</h4>
                         <ul>
-                            ${reasons.map(r => `<li>${r}</li>`).join('')}
-                        </ul>
-                    </div>
-
-                    <div class="insufficient-help">
-                        <h4>${isPortuguese ? 'O que ajudaria a analisar:' : 'What would help to analyze:'}</h4>
-                        <ul>
-                            ${helpItems.map(h => `<li>${h}</li>`).join('')}
+                            ${missing.map(m => `<li>${m}</li>`).join('')}
                         </ul>
                     </div>
 
@@ -2350,9 +2438,9 @@
 
                     <div class="insufficient-meta">
                         <small>
-                            ${isPortuguese ? 'Mensagens:' : 'Messages:'} ${gateResult.features.messageCount} |
-                            ${isPortuguese ? 'Dias:' : 'Days:'} ~${gateResult.features.daysSpan} |
-                            ${isPortuguese ? 'Eventos:' : 'Events:'} ${gateResult.features.commitmentEvents}
+                            ${isPortuguese ? 'Mensagens:' : 'Messages:'} ${f.messageCount} |
+                            ${isPortuguese ? 'Dias:' : 'Days:'} ~${f.daysSpan} |
+                            ${isPortuguese ? 'Eventos:' : 'Events:'} ${f.commitmentEvents}
                         </small>
                     </div>
                 </div>
@@ -2360,9 +2448,90 @@
             insufficientEl.classList.add('active');
         }
 
+        function renderInitialReading(stateResult, analysisData) {
+            const isPortuguese = currentLang === 'pt';
+            const f = stateResult.features;
+
+            // Esconder área de input e loading
+            document.getElementById('inputArea').style.display = 'none';
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) loadingOverlay.classList.remove('active');
+
+            console.info('[ALPHA] state: INITIAL_READING', { features: f });
+
+            // Disclaimer obrigatório
+            const disclaimer = isPortuguese
+                ? 'Esta análise reflete apenas os dados disponíveis até agora. Relações são dinâmicas. Novos comportamentos mudam o diagnóstico.'
+                : 'This analysis reflects only the data available so far. Relationships are dynamic. New behaviors change the diagnosis.';
+
+            // Tendências observadas (linguagem não conclusiva)
+            const trends = analysisData.trends || [];
+            const attentionPoints = analysisData.attentionPoints || [];
+            const nextObserve = analysisData.nextObserve || [];
+
+            const initialEl = document.getElementById('initialReading');
+            initialEl.innerHTML = `
+                <div class="initial-content">
+                    <div class="state-disclaimer">
+                        ${disclaimer}
+                    </div>
+
+                    <h2 class="initial-title">
+                        <span class="state-badge">Leitura inicial</span>
+                    </h2>
+
+                    ${trends.length > 0 ? `
+                    <div class="initial-block">
+                        <h4><span class="emoji">📊</span> ${isPortuguese ? 'Tendências observadas' : 'Observed trends'}</h4>
+                        <ul>
+                            ${trends.map(t => `<li>${t}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+
+                    ${attentionPoints.length > 0 ? `
+                    <div class="initial-block attention">
+                        <h4><span class="emoji">👀</span> ${isPortuguese ? 'Pontos de atenção' : 'Points of attention'}</h4>
+                        <ul>
+                            ${attentionPoints.map(a => `<li>${a}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+
+                    ${nextObserve.length > 0 ? `
+                    <div class="initial-block observe">
+                        <h4><span class="emoji">🔍</span> ${isPortuguese ? 'O que observar daqui pra frente' : 'What to observe going forward'}</h4>
+                        <ul>
+                            ${nextObserve.map(n => `<li>${n}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+
+                    <div class="initial-ctas">
+                        <button class="insufficient-btn primary" onclick="addMoreData()">
+                            ${isPortuguese ? 'Adicionar mais dados' : 'Add more data'}
+                        </button>
+                        <button class="insufficient-btn secondary" onclick="resetAnalysis()">
+                            ${isPortuguese ? 'Analisar outra conversa' : 'Analyze another conversation'}
+                        </button>
+                    </div>
+
+                    <div class="insufficient-meta">
+                        <small>
+                            ${isPortuguese ? 'Mensagens:' : 'Messages:'} ${f.messageCount} |
+                            ${isPortuguese ? 'Dias:' : 'Days:'} ~${f.daysSpan} |
+                            ${isPortuguese ? 'Eventos:' : 'Events:'} ${f.commitmentEvents}
+                        </small>
+                    </div>
+                </div>
+            `;
+            initialEl.classList.add('active');
+        }
+
         function addMoreData() {
             // Voltar para o formulário mantendo os dados
             document.getElementById('insufficientData').classList.remove('active');
+            document.getElementById('initialReading').classList.remove('active');
             document.getElementById('inputArea').style.display = 'block';
             // Focar no textarea
             document.getElementById('conversation').focus();
@@ -2370,32 +2539,87 @@
 
         // ================== CORE ANALYSIS ==================
 
-        function analyzeConversationCore() {
-            console.log('analyzeConversationCore called');
-            const text = document.getElementById('conversation').value.trim();
+        function generateInitialReadingData(text, lang) {
+            // Gera tendências, pontos de atenção e próximos passos para INITIAL_READING
+            // LINGUAGEM NÃO CONCLUSIVA - apenas observações
+            const isPortuguese = lang === 'pt';
+            const trends = [];
+            const attentionPoints = [];
+            const nextObserve = [];
 
-            // ========== CONFIDENCE GATE (OBRIGATÓRIO) ==========
-            const features = extractConversationFeatures(text);
-            const gateResult = checkConfidenceGate(features);
+            // Análise básica de padrões (sem conclusões)
+            const lines = text.split('\n').filter(l => l.trim());
+            const euLines = lines.filter(l => /^(eu|me|minha?)[\s:]/i.test(l)).length;
+            const outroLines = lines.filter(l => /^(ele|ela|você|vc)[\s:]/i.test(l)).length;
 
-            if (!gateResult.canAnalyze) {
-                console.info('[ALPHA] confidence_gate: blocked', {
-                    hasMinMessages: gateResult.hasMinMessages,
-                    hasTimeWindow: gateResult.hasTimeWindow,
-                    hasCommitment: gateResult.hasCommitment,
-                    sourceReliable: gateResult.sourceReliable,
-                    features: features
-                });
-                renderInsufficientData(gateResult);
-                return; // BLOQUEIO TOTAL DO PIPELINE
+            // Tendência de proporção de mensagens
+            if (euLines > outroLines * 1.5) {
+                trends.push(isPortuguese
+                    ? 'Você parece iniciar mais conversas do que a outra pessoa'
+                    : 'You seem to initiate more conversations than the other person');
+            } else if (outroLines > euLines * 1.5) {
+                trends.push(isPortuguese
+                    ? 'A outra pessoa parece iniciar mais conversas'
+                    : 'The other person seems to initiate more conversations');
+            } else {
+                trends.push(isPortuguese
+                    ? 'A troca de mensagens parece equilibrada'
+                    : 'Message exchange seems balanced');
             }
 
-            console.info('[ALPHA] confidence_gate: passed', features);
+            // Detectar perguntas sem resposta (padrão de evasão)
+            const perguntasSemResposta = (text.match(/\?[^\n]*\n[^\?]*(?:haha|rs|kk|ok|sim|não|tá|beleza)/gi) || []).length;
+            if (perguntasSemResposta >= 2) {
+                attentionPoints.push(isPortuguese
+                    ? 'Algumas perguntas parecem ter respostas curtas ou evasivas'
+                    : 'Some questions seem to have short or evasive answers');
+            }
+
+            // Próximos passos genéricos
+            nextObserve.push(isPortuguese
+                ? 'Observe se há reciprocidade quando você propõe algo concreto'
+                : 'Observe if there\'s reciprocity when you propose something concrete');
+            nextObserve.push(isPortuguese
+                ? 'Note se a comunicação evolui ou estagna ao longo do tempo'
+                : 'Note if communication evolves or stagnates over time');
+
+            return { trends, attentionPoints, nextObserve };
+        }
+
+        function analyzeConversationCore() {
+            console.info('[ALPHA] analyzeConversationCore called');
+            const text = document.getElementById('conversation').value.trim();
+            const lang = currentLang;
+
+            // ========== SISTEMA DE ESTADOS (v0.4.0) ==========
+            const features = extractConversationFeatures(text);
+            const stateResult = determineAnalysisState(features);
+
+            console.info('[ALPHA] state_check:', {
+                state: stateResult.state,
+                features: features,
+                reasons: stateResult.reasons
+            });
+
+            // INSUFFICIENT_DATA → Bloqueia completamente
+            if (stateResult.state === AnalysisState.INSUFFICIENT_DATA) {
+                renderInsufficientData(stateResult);
+                return;
+            }
+
+            // INITIAL_READING → Apenas tendências, sem conclusões
+            if (stateResult.state === AnalysisState.INITIAL_READING) {
+                const initialData = generateInitialReadingData(text, lang);
+                renderInitialReading(stateResult, initialData);
+                return;
+            }
+
+            // FULL_ANALYSIS → Análise completa (continua abaixo)
+            console.info('[ALPHA] state: FULL_ANALYSIS - proceeding with full analysis');
             // ====================================================
 
             // Core analysis - validation done by startAnalysisFlow()
-            console.log('Text length:', text.length);
-            const lang = currentLang;
+            console.info('[ALPHA] text_length:', text.length);
             const contextBonus = inferFromContext();
 
             let evasaoScore = inputMode === 'text' ? calculateScore(text, patterns.evasao[lang]) : 0;
@@ -2823,6 +3047,7 @@
             document.getElementById('error').classList.remove('active');
             document.getElementById('triagemRisco').classList.remove('active');
             document.getElementById('insufficientData').classList.remove('active');
+            document.getElementById('initialReading').classList.remove('active');
             document.getElementById('feedbackForm').style.display = 'block';
             document.getElementById('feedbackSuccess').classList.remove('active');
             document.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('selected'));
@@ -3144,12 +3369,12 @@
 
     <footer>
         Made by <a href="https://lolalab.studio" target="_blank">Lola Lab</a>
-        <span class="build-version">v0.3.0</span>
+        <span class="build-version">v0.4.0</span>
     </footer>
 
     <script>
         // BUILD_VERSION for debugging
-        const BUILD_VERSION = 'v0.3.0';
+        const BUILD_VERSION = 'v0.4.0';
         const BUILD_DATE = '2026-02-05';
         console.info('[ALPHA] BUILD_VERSION:', BUILD_VERSION, BUILD_DATE);
     </script>
