@@ -50,7 +50,8 @@
             transition: all 0.2s;
         }
 
-        .lang-btn:hover, .lang-btn.active {
+        .lang-btn:hover,
+        .lang-btn.active {
             border-color: #fafafa;
             color: #fafafa;
         }
@@ -114,7 +115,7 @@
             color: #a3a3a3;
         }
 
-        /* Test access section - mais visível */
+        /* Test access section */
         .test-access {
             margin-top: 48px;
             padding-top: 32px;
@@ -138,10 +139,6 @@
         .test-access-link:hover {
             border-color: #737373;
             color: #fafafa;
-        }
-
-        .test-access-link .icon {
-            font-size: 16px;
         }
 
         .disclaimer {
@@ -300,12 +297,10 @@
 
     <div class="container">
         <p class="brand">LOLA LAB</p>
-
         <h1>Alpha</h1>
-
         <p class="subtitle" data-pt="Diagnóstico emocional" data-en="Emotional diagnosis">Diagnóstico emocional</p>
 
-        <p class="tagline" data-pt="Clareza emocional antes de se perder.&lt;br&gt;Sem romantizar. Sem ilusão." data-en="Emotional clarity before you lose yourself.&lt;br&gt;No romanticizing. No illusion.">
+        <p class="tagline" data-pt="Clareza emocional antes de se perder.<br>Sem romantizar. Sem ilusão." data-en="Emotional clarity before you lose yourself.<br>No romanticizing. No illusion.">
             Clareza emocional antes de se perder.<br>
             Sem romantizar. Sem ilusão.
         </p>
@@ -313,7 +308,6 @@
         <a href="https://buy.stripe.com/3cIaEZgJja5y2REaEf1ck00" class="cta-button" data-pt="Analisar minha conversa" data-en="Analyze my conversation">
             Analisar minha conversa
         </a>
-
         <p class="price"><span>€19</span> — <span data-pt="acesso imediato" data-en="instant access">acesso imediato</span></p>
 
         <div class="test-access">
@@ -351,7 +345,6 @@
                 >
 
                 <button class="modal-btn" onclick="validateCode()" data-pt="Acessar" data-en="Access">Acessar</button>
-
                 <p class="modal-error" id="codeError" data-pt="Código inválido. Tente novamente." data-en="Invalid code. Try again.">Código inválido. Tente novamente.</p>
             </div>
         </div>
@@ -362,6 +355,7 @@
 
         function setLang(lang) {
             currentLang = lang;
+
             document.querySelectorAll('[data-pt]').forEach(el => {
                 const text = el.getAttribute('data-' + lang);
                 el.innerHTML = text.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
@@ -379,6 +373,7 @@
                     btn.classList.add('active');
                 }
             });
+
             localStorage.setItem('alpha-lang', lang);
         }
 
@@ -405,9 +400,11 @@
             const rawCode = document.getElementById('accessCode').value;
             // Normaliza: lowercase, remove espaços, aceita variações
             const code = rawCode.toLowerCase().replace(/\s+/g, '').trim();
+
             const validCodes = ['lolalab', 'lola', 'alpha'];
 
             if (validCodes.includes(code)) {
+                // CORRIGIDO: Redireciona para v1.5
                 window.location.href = 'alpha-v1.5.html';
             } else {
                 document.getElementById('codeError').classList.add('show');
@@ -430,8 +427,7 @@
         });
 
         // Check saved language or browser language
-        const savedLang = localStorage.getItem('alpha-lang') ||
-            (navigator.language.startsWith('pt') ? 'pt' : 'en');
+        const savedLang = localStorage.getItem('alpha-lang') || (navigator.language.startsWith('pt') ? 'pt' : 'en');
         if (savedLang !== 'pt') setLang(savedLang);
     </script>
 </body>
