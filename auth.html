@@ -384,14 +384,14 @@
         const SUPABASE_URL = 'https://dqeyhbrjcuknmlrpvfzt.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_MuOz1kDBJEqOwUxEtN6-9Q_WgB5yOfb';
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Beta codes (temporário - depois remover)
         const validBetaCodes = ['lolalab', 'lola', 'alpha'];
 
         // Check if already logged in
         async function checkSession() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 // Already logged in, redirect to app
                 window.location.href = 'alpha-v1.5.html';
@@ -403,7 +403,7 @@
             const hash = window.location.hash;
             if (hash && hash.includes('access_token')) {
                 // User came from magic link
-                const { data: { session }, error } = await supabase.auth.getSession();
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
                 if (session && !error) {
                     window.location.href = 'alpha-v1.5.html';
                 }
@@ -429,7 +429,7 @@
             hideError('error');
 
             try {
-                const { error } = await supabase.auth.signInWithOtp({
+                const { error } = await supabaseClient.auth.signInWithOtp({
                     email,
                     options: {
                         emailRedirectTo: window.location.origin + '/alpha-v1.5.html'
