@@ -204,39 +204,40 @@
             color: #525252;
         }
 
-        /* Image Preview */
-        .image-preview {
-            display: none;
+        /* Images Preview Grid */
+        .images-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
             width: 100%;
+            margin-top: 12px;
         }
 
-        .image-preview.active {
-            display: block;
-        }
-
-        .preview-container {
+        .preview-item {
             position: relative;
-            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #1a1a1a;
         }
 
-        .preview-image {
+        .preview-item img {
             width: 100%;
-            max-height: 400px;
-            object-fit: contain;
-            border-radius: 8px;
+            height: 100%;
+            object-fit: cover;
         }
 
         .remove-image-btn {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 32px;
-            height: 32px;
+            top: 4px;
+            right: 4px;
+            width: 24px;
+            height: 24px;
             background: rgba(0, 0, 0, 0.7);
             border: none;
             border-radius: 50%;
             color: #fff;
-            font-size: 18px;
+            font-size: 14px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -246,6 +247,25 @@
 
         .remove-image-btn:hover {
             background: rgba(220, 38, 38, 0.8);
+        }
+
+        .add-more-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            background: transparent;
+            border: 1px dashed #404040;
+            border-radius: 8px;
+            color: #737373;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-more-btn:hover {
+            border-color: #525252;
+            color: #a3a3a3;
         }
 
         /* Hidden file input */
@@ -461,7 +481,7 @@
         <div class="input-area" id="inputArea">
 
             <div class="field-group">
-                <label class="field-label">Cole aqui a conversa ou envie um print</label>
+                <label class="field-label">Compartilha a conversa que ficou ecoando na sua cabeça</label>
 
                 <!-- Input Toggle -->
                 <div class="input-toggle">
@@ -490,7 +510,7 @@
                     <textarea
                         class="conversation-input"
                         id="conversation"
-                        placeholder="Cole a conversa que você quer analisar. Pode ser do WhatsApp, Instagram, SMS..."
+                        placeholder="Cola aqui. Pode ser WhatsApp, Instagram, SMS... Só você e o Alpha vão ver."
                     ></textarea>
                 </div>
 
@@ -504,27 +524,27 @@
                                 <line x1="12" y1="3" x2="12" y2="15"/>
                             </svg>
                             <p class="upload-text">
-                                <strong>Toque para selecionar</strong><br>
-                                ou arraste uma imagem aqui
+                                <strong>Toca pra escolher o print</strong><br>
+                                ou arrasta aqui
                             </p>
                             <p class="upload-hint">PNG, JPG ou HEIC até 10MB</p>
                         </div>
 
-                        <!-- Image Preview -->
-                        <div class="image-preview" id="imagePreview">
-                            <div class="preview-container">
-                                <img id="previewImage" class="preview-image" src="" alt="Preview">
-                                <button type="button" class="remove-image-btn" onclick="removeImage(event)">×</button>
-                            </div>
-                        </div>
+                        <!-- Image Preview Grid -->
+                        <div class="images-preview" id="imagesPreview"></div>
+
+                        <!-- Add more images button -->
+                        <button type="button" class="add-more-btn" id="addMoreBtn" onclick="triggerFileInput()" style="display: none;">
+                            + Adicionar mais prints
+                        </button>
                     </div>
 
-                    <input type="file" class="file-input" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+                    <input type="file" class="file-input" id="fileInput" accept="image/*" multiple onchange="handleFileSelect(event)">
                 </div>
             </div>
 
             <div class="field-group">
-                <label class="field-label">O que você quer entender sobre essa relação?</label>
+                <label class="field-label">O que você quer clareza sobre isso?</label>
                 <input
                     type="text"
                     class="question-input"
@@ -559,8 +579,8 @@
         const ALPHA_API_URL = 'https://alpha-api.rough-night-439c.workers.dev';
 
         let currentMode = 'text';
-        let selectedImage = null;
-        let imageBase64 = null;
+        let selectedImages = []; // Array de imagens
+        let imagesBase64 = []; // Array de base64
 
         // Input mode toggle
         function setInputMode(mode) {
@@ -574,17 +594,13 @@
 
         // File input trigger
         function triggerFileInput() {
-            if (!selectedImage) {
-                document.getElementById('fileInput').click();
-            }
+            document.getElementById('fileInput').click();
         }
 
-        // Handle file selection
+        // Handle file selection (múltiplos arquivos)
         function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (file) {
-                processImage(file);
-            }
+            const files = Array.from(event.target.files);
+            files.forEach(file => processImage(file));
         }
 
         // Process image file
@@ -595,57 +611,69 @@
                 return;
             }
 
-            // Validate file size (10MB max)
+            // Validate file size (10MB max per image)
             if (file.size > 10 * 1024 * 1024) {
-                showError('A imagem deve ter no máximo 10MB.');
+                showError('Cada imagem deve ter no máximo 10MB.');
                 return;
             }
 
-            selectedImage = file;
+            // Max 10 images
+            if (selectedImages.length >= 10) {
+                showError('Máximo de 10 prints por análise.');
+                return;
+            }
 
             // Convert to base64
             const reader = new FileReader();
             reader.onload = function(e) {
-                imageBase64 = e.target.result;
-                showImagePreview(e.target.result);
+                const imageData = {
+                    file: file,
+                    base64: e.target.result,
+                    id: Date.now() + Math.random()
+                };
+                selectedImages.push(imageData);
+                imagesBase64.push(e.target.result);
+                renderImagePreviews();
             };
             reader.readAsDataURL(file);
-        }
-
-        // Show image preview
-        function showImagePreview(src) {
-            const uploadZone = document.getElementById('uploadZone');
-            const uploadContent = document.getElementById('uploadContent');
-            const imagePreview = document.getElementById('imagePreview');
-            const previewImage = document.getElementById('previewImage');
-
-            previewImage.src = src;
-            uploadContent.style.display = 'none';
-            imagePreview.classList.add('active');
-            uploadZone.classList.add('has-image');
 
             hideError();
         }
 
-        // Remove image
-        function removeImage(event) {
-            event.stopPropagation();
-
-            selectedImage = null;
-            imageBase64 = null;
-
-            const uploadZone = document.getElementById('uploadZone');
+        // Render all image previews
+        function renderImagePreviews() {
+            const previewContainer = document.getElementById('imagesPreview');
             const uploadContent = document.getElementById('uploadContent');
-            const imagePreview = document.getElementById('imagePreview');
-            const fileInput = document.getElementById('fileInput');
+            const addMoreBtn = document.getElementById('addMoreBtn');
+            const uploadZone = document.getElementById('uploadZone');
 
-            uploadContent.style.display = 'flex';
-            uploadContent.style.flexDirection = 'column';
-            uploadContent.style.alignItems = 'center';
-            uploadContent.style.gap = '16px';
-            imagePreview.classList.remove('active');
-            uploadZone.classList.remove('has-image');
-            fileInput.value = '';
+            if (selectedImages.length === 0) {
+                previewContainer.innerHTML = '';
+                uploadContent.style.display = 'flex';
+                addMoreBtn.style.display = 'none';
+                uploadZone.classList.remove('has-image');
+                return;
+            }
+
+            uploadContent.style.display = 'none';
+            addMoreBtn.style.display = 'block';
+            uploadZone.classList.add('has-image');
+
+            previewContainer.innerHTML = selectedImages.map((img, index) => `
+                <div class="preview-item">
+                    <img src="${img.base64}" alt="Print ${index + 1}">
+                    <button type="button" class="remove-image-btn" onclick="removeImage(${index}, event)">×</button>
+                </div>
+            `).join('');
+        }
+
+        // Remove image by index
+        function removeImage(index, event) {
+            event.stopPropagation();
+            selectedImages.splice(index, 1);
+            imagesBase64.splice(index, 1);
+            renderImagePreviews();
+            document.getElementById('fileInput').value = '';
         }
 
         // Drag and drop handlers
@@ -665,10 +693,8 @@
             e.preventDefault();
             uploadZone.classList.remove('dragover');
 
-            const file = e.dataTransfer.files[0];
-            if (file) {
-                processImage(file);
-            }
+            const files = Array.from(e.dataTransfer.files);
+            files.forEach(file => processImage(file));
         });
 
         // Paste handler (Ctrl+V / Cmd+V)
@@ -680,7 +706,6 @@
                 if (item.type.startsWith('image/')) {
                     const file = item.getAsFile();
                     processImage(file);
-                    break;
                 }
             }
         });
@@ -715,8 +740,8 @@
                     return;
                 }
             } else {
-                if (!selectedImage || !imageBase64) {
-                    showError('Selecione uma imagem da conversa.');
+                if (selectedImages.length === 0) {
+                    showError('Selecione pelo menos um print da conversa.');
                     return;
                 }
             }
@@ -736,7 +761,7 @@
                 if (currentMode === 'text') {
                     payload.conversation = conversation;
                 } else {
-                    payload.image = imageBase64;
+                    payload.images = imagesBase64; // Array de imagens
                 }
 
                 const response = await fetch(ALPHA_API_URL, {
@@ -784,10 +809,11 @@
             document.getElementById('question').value = '';
             hideError();
 
-            // Reset image
-            if (selectedImage) {
-                removeImage(new Event('click'));
-            }
+            // Reset images
+            selectedImages = [];
+            imagesBase64 = [];
+            renderImagePreviews();
+            document.getElementById('fileInput').value = '';
 
             // Reset to text mode
             setInputMode('text');
